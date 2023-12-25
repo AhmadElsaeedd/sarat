@@ -72,6 +72,8 @@ const getOpenAIResponse = async (userPhone, message) => {
       await chatsRef.set(updateData, {merge: true});
     }
     const myThread = await openai.beta.threads.retrieve(threadId);
+    // const myThread = await openai.beta.threads.retrieve("thread_m9BGpxeCXf0JWVmLYN1EKwyO");
+
 
     await openai.beta.threads.messages.create(
         myThread.id,
