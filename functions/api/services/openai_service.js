@@ -45,32 +45,67 @@ function periodicallyCheckRun(thread_id, run_id) {
   });
 }
 
+async function check_user_thread(userPhone) {
+  console.log("CHECKING WHETHER USER EXISTS");
+  const user_doc = await db.collection('Users').doc(userPhone).get();
+
+  if (user_doc.exists) {
+    const thread_id = user_doc.data().thread_id;
+    console.log("USER EXISTS");
+    return thread_id;
+  }
+  console.log("USER DOESN'T EXIST");
+  return null;
+}
+
+async function create_user(userPhone, thread_id) {
+  console.log("CREATING USER");
+  const data = {
+    phone_number: userPhone,
+    thread_id: thread_id,
+  };
+
+  await db.collection('Users').doc(userPhone).set(data);
+}
+
 const getOpenAIResponse = async (userPhone, message) => {
   try {
     console.log("Received message from", userPhone, ": ", message);
 
-    // Check if the user has an existing chat
-    const chatsRef = db.collection('Chats').doc('ExistingChats');
-    const doc = await chatsRef.get();
     let threadId;
+    threadId = await check_user_thread(userPhone);
+
+    // Check if the user has an existing chat
+    // const chatsRef = db.collection('Chats').doc('ExistingChats');
+    // const doc = await chatsRef.get();
 
     const myAssistant = await openai.beta.assistants.retrieve(
         "asst_miXXdPGRpxaQlQ4QtUCrXWYG",
     );
 
-    if (doc.exists && doc.data()[userPhone]) {
-      // Use the existing thread ID
-      threadId = doc.data()[userPhone];
-    } else {
-      // If not, create a new thread
+    if (threadId===null) {
+      console.log("USER DOESN'T EXIST, I WANNA CREATE ONE");
+      // create a new user with a new thread
       const thread = await openai.beta.threads.create();
       threadId = thread.id;
 
-      // Update Firestore with the new thread ID
-      const updateData = {};
-      updateData[userPhone] = threadId;
-      await chatsRef.set(updateData, {merge: true});
+      await create_user(userPhone, threadId);
     }
+
+
+    // if (doc.exists && doc.data()[userPhone]) {
+    //   // Use the existing thread ID
+    //   threadId = doc.data()[userPhone];
+    // } else {
+    //   // If not, create a new thread
+    //   const thread = await openai.beta.threads.create();
+    //   threadId = thread.id;
+
+    //   // Update Firestore with the new thread ID
+    //   const updateData = {};
+    //   updateData[userPhone] = threadId;
+    //   await chatsRef.set(updateData, {merge: true});
+    // }
     const myThread = await openai.beta.threads.retrieve(threadId);
     // const myThread = await openai.beta.threads.retrieve("thread_m9BGpxeCXf0JWVmLYN1EKwyO");
 
