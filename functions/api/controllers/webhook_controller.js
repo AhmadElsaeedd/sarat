@@ -1,5 +1,6 @@
 const {getOpenAIResponse} = require('../services/openai_service');
 const {sendMessage} = require('../services/whatsapp_service');
+const {handleCart} = require('../services/cart_service');
 
 const verifyToken = 'testing'; // make this a better password and put it in .env
 
@@ -33,11 +34,11 @@ const postWebhook = async (req, res) => {
               const processingMessages = change.value.messages.map(async (message) => {
                 // ToDo: get the phone number of the user who sent the message
                 const userPhone = message.from;
-                console.log("I RECEIVED A MESSAGE FROM: ", userPhone);
-                console.log('Received message:', message.text.body);
+                const message_text = message.text.body;
+                console.log("Received message from", userPhone, ": ", message_text);
+                await handleCart(userPhone, message_text);
                 // give the message to the openai service to generate a response
-                const aiResponse = await getOpenAIResponse(userPhone, message.text.body);
-                console.log("OPENAI's response is: ", aiResponse);
+                const aiResponse = await getOpenAIResponse(userPhone, message_text);
                 // ToDo: pass this response to the whatsapp function that sends a message back to the user
                 await sendMessage(userPhone, aiResponse);
                 console.log("SENT MESSAGE");
