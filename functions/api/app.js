@@ -1,11 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const webhookRoutes = require('./routes/webhook_routes');
+const textingRoutes = require('./routes/texting_routes');
 
 
 const app = express();
 app.use(cors({origin: true}));
 app.use(express.json()); // To parse JSON bodies
+// Callable using https://us-central1-your-project-id.cloudfunctions.net/webhook
 app.use('/', webhookRoutes);
+// Callabe using https://us-central1-your-project-id.cloudfunctions.net/webhook/texting
+app.use('/texting', textingRoutes);
 
 module.exports = app;
