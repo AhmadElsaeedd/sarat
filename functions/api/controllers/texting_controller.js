@@ -1,3 +1,5 @@
+const {sendIntroMessage} = require('../services/whatsapp_service');
+
 const postTexting = async (req, res) => {
   try {
     // Required parameters
@@ -11,7 +13,8 @@ const postTexting = async (req, res) => {
     const productSize = req.body.productSize || null;
     console.log("Person name is: ", personName);
     console.log("Product size is: ", productSize);
-
+    // Call sendIntroMessage
+    await sendIntroMessage(phoneNumber, productName, personName, productSize);
 
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
