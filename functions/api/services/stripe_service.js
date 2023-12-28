@@ -6,7 +6,7 @@ async function get_price_id(product_id) {
   return prices.data[0].id;
 }
 
-const generatePaymentLink = async (product_id) => {
+const generatePaymentLink = async (phoneNumber, product_id) => {
   try {
     const price_id = await get_price_id(product_id);
     // ToDo: generate a payment link using the price_id of the product
@@ -17,8 +17,11 @@ const generatePaymentLink = async (product_id) => {
           quantity: 1,
         },
       ],
+      metadata: {
+        phone: phoneNumber,
+      },
     });
-    return paymentLink.url;
+    return paymentLink;
   } catch (error) {
     console.error("Error generating link:", error.response ? error.response.data : error.message);
   }

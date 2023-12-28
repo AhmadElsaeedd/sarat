@@ -3,6 +3,6 @@ const express = require('express');
 const router = express.Router();
 const {postTexting} = require('../controllers/texting_controller');
 
-router.post('/', postTexting);
+router.post('/', express.json(), postTexting);
 
 module.exports = router;

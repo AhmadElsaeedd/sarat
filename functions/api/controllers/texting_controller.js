@@ -29,6 +29,7 @@ async function update_current_product(phoneNumber, productName) {
   // await user_ref.update({current_product: productId});
   await user_ref.set({
     current_product: productId,
+    phone_number: phoneNumber,
   }, {merge: true});
 }
 

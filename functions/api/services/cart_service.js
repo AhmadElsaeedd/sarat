@@ -39,20 +39,37 @@ async function get_product_id(userPhone) {
 //   // ToDo: add the product id to the cart array
 // }
 
+async function user_has_customer_id(userPhone) {
+  const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_data = user_doc.data();
+  if (user_doc.exists && user_data.customer_id) {
+    return true;
+  } else return false;
+}
+
 const handleCart = async (userPhone, message) => {
   try {
     const handle_text = is_text_handleable(message);
 
     // let cart;
     if (handle_text) {
-      console.log("I need to handle this text");
       // ToDo: get the product's id
       const product_id = await get_product_id(userPhone);
-      // ToDo: pass this product id to the stripe api to generate a link with it
-      const payment_url = await generatePaymentLink(product_id);
-      console.log("Payment link is: ", payment_url);
-      // ToDo: pass this payment link to the whatsapp service with the phone number of the user
-      await sendPaymentLinkMessage(userPhone, payment_url);
+      // ToDo: see if the user is returning or is first time
+      const returning_user = await user_has_customer_id(userPhone);
+      if (!returning_user) {
+        // First time user
+        // ToDo: pass this product id to the stripe api to generate a link with it
+        const payment_link = await generatePaymentLink(userPhone, product_id);
+        // ToDo: pass this payment link to the whatsapp service with the phone number of the user
+        await sendPaymentLinkMessage(userPhone, payment_link.url);
+      } else {
+        console.log("I want to send a payment intent");
+        // Returning user
+        // ToDo: generate a payment intent of that user
+
+        // ToDo: send a message to confirm the payment intent
+      }
     } else {
       const aiResponse = await getOpenAIResponse(userPhone, message);
       // ToDo: pass this response to the whatsapp function that sends a message back to the user
