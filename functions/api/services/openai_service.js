@@ -45,22 +45,21 @@ function periodicallyCheckRun(thread_id, run_id) {
 
 async function check_user_thread(userPhone) {
   const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_data = user_doc.data();
 
-  if (user_doc.exists) {
-    const thread_id = user_doc.data().thread_id;
+  if (user_doc.exists && user_data.thread_id) {
+    const thread_id = user_data.thread_id;
     return thread_id;
   }
   return null;
 }
 
 async function create_user(userPhone, thread_id) {
-  const data = {
+  await db.collection('Users').doc(userPhone).set({
     phone_number: userPhone,
     thread_id: thread_id,
     cart: [],
-  };
-
-  await db.collection('Users').doc(userPhone).set(data);
+  }, {merge: true});
 }
 
 const getOpenAIResponse = async (userPhone, message) => {

@@ -26,7 +26,10 @@ async function update_current_product(phoneNumber, productName) {
   const productId = products.data[0].id;
 
   // Update the document
-  await user_ref.update({current_product: productId});
+  // await user_ref.update({current_product: productId});
+  await user_ref.set({
+    current_product: productId,
+  }, {merge: true});
 }
 
 const postTexting = async (req, res) => {

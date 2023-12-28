@@ -13,8 +13,7 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 function is_text_handleable(text) {
-  // if (text === "ADD" || text === "BUY") return true;
-  if (text === "BUY") return true;
+  if (text.toLowerCase() === "yes") return true;
   else return false;
 }
 

@@ -11,7 +11,7 @@ const sendMessage = async (recipientPhone, messageContent) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBOy7FNFFOAADUxvVfg2Uf9g97IxzIcv32keCAV8ipDlaMdNZCMtEnmpWQrCE67oeHyjcR7onNAdpV6C6LFaJZAZCxFuXoUQ2g4RsirtiMDWB2lxx3oXvjRefZANysF2DwytQn1ETvYSbZBihYvWCFsZArvqnqaZAzN8ZB8MP07nKBsvpr4uYXRgAxATpZC1qaDhk51jVlVBXwZD`, // Replace with your actual access token
+      'Authorization': `Bearer EAAMxddllNeIBO3xpicxJ48rsA0oeOeZB3N0zbtuSIbOJcgj2gV7yZCDrvdJIDkU0FZABatnBgAYG7W5gL9TaWIvEODupSK91ckaUZBnbixKZCZBlDzTDVE37fBpZBg1zZAEeY2Y43ZCT9ZBysUj6scXQbP8ZB6ZB2PiVWiGM8UvSNz9z895XnCWuABaZAJToc85ngzc6NpVTcFObhT9SDsmyArUMZD`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -23,7 +23,7 @@ const sendMessage = async (recipientPhone, messageContent) => {
 };
 
 function create_greeting_message(productName, personName = null, productSize = null) {
-  const message = `Hey${personName ? ' '+ personName + ',' : ','} ${productName} ${productSize ? 'in ' + productSize : ''} you loved is back! Text 'BUY' to claim yours. Fast, fabulous fashion is just a message away!`;
+  const message = `Hey${personName ? ' '+ personName + ',' : ','} ${productName} ${productSize ? 'in ' + productSize : ''} you loved is back! Text 'Yes' to claim yours. Fast, fabulous fashion is just a message away!`;
   return message;
 }
 
@@ -39,7 +39,7 @@ const sendIntroMessage = async (recipientPhone, productName, personName = null, 
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBOy7FNFFOAADUxvVfg2Uf9g97IxzIcv32keCAV8ipDlaMdNZCMtEnmpWQrCE67oeHyjcR7onNAdpV6C6LFaJZAZCxFuXoUQ2g4RsirtiMDWB2lxx3oXvjRefZANysF2DwytQn1ETvYSbZBihYvWCFsZArvqnqaZAzN8ZB8MP07nKBsvpr4uYXRgAxATpZC1qaDhk51jVlVBXwZD`, // Replace with your actual access token
+      'Authorization': `Bearer EAAMxddllNeIBO3xpicxJ48rsA0oeOeZB3N0zbtuSIbOJcgj2gV7yZCDrvdJIDkU0FZABatnBgAYG7W5gL9TaWIvEODupSK91ckaUZBnbixKZCZBlDzTDVE37fBpZBg1zZAEeY2Y43ZCT9ZBysUj6scXQbP8ZB6ZB2PiVWiGM8UvSNz9z895XnCWuABaZAJToc85ngzc6NpVTcFObhT9SDsmyArUMZD`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -63,12 +63,12 @@ const sendPaymentLinkMessage = async (recipientPhone, paymentURL) => {
       messaging_product: 'whatsapp',
       to: recipientPhone,
       text: {
-        preview_url: true,
+        // preview_url: true,
         body: messageContent,
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBOy7FNFFOAADUxvVfg2Uf9g97IxzIcv32keCAV8ipDlaMdNZCMtEnmpWQrCE67oeHyjcR7onNAdpV6C6LFaJZAZCxFuXoUQ2g4RsirtiMDWB2lxx3oXvjRefZANysF2DwytQn1ETvYSbZBihYvWCFsZArvqnqaZAzN8ZB8MP07nKBsvpr4uYXRgAxATpZC1qaDhk51jVlVBXwZD`, // Replace with your actual access token
+      'Authorization': `Bearer EAAMxddllNeIBO3xpicxJ48rsA0oeOeZB3N0zbtuSIbOJcgj2gV7yZCDrvdJIDkU0FZABatnBgAYG7W5gL9TaWIvEODupSK91ckaUZBnbixKZCZBlDzTDVE37fBpZBg1zZAEeY2Y43ZCT9ZBysUj6scXQbP8ZB6ZB2PiVWiGM8UvSNz9z895XnCWuABaZAJToc85ngzc6NpVTcFObhT9SDsmyArUMZD`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
