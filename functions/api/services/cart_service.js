@@ -1,3 +1,5 @@
+const {getOpenAIResponse} = require('../services/openai_service');
+const {sendMessage, sendPaymentLinkMessage} = require('../services/whatsapp_service');
 const admin = require("firebase-admin");
 const {generatePaymentLink} = require('../services/stripe_service');
 // const OpenAI = require("openai");
@@ -51,6 +53,11 @@ const handleCart = async (userPhone, message) => {
       const payment_url = await generatePaymentLink(product_id);
       console.log("Payment link is: ", payment_url);
       // ToDo: pass this payment link to the whatsapp service with the phone number of the user
+      await sendPaymentLinkMessage(userPhone, payment_url);
+    } else {
+      const aiResponse = await getOpenAIResponse(userPhone, message);
+      // ToDo: pass this response to the whatsapp function that sends a message back to the user
+      await sendMessage(userPhone, aiResponse);
     }
 
 
