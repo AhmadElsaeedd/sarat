@@ -13,11 +13,11 @@ async function get_price_object(product_id) {
   return prices.data[0];
 }
 
-async function get_customer_id(phoneNumber) {
+async function get_customer_data(phoneNumber) {
   const user_doc = await db.collection('Users').doc(phoneNumber).get();
   const user_data = user_doc.data();
-  if (user_doc.exists && user_data.customer_id) {
-    return user_data.customer_id;
+  if (user_doc.exists && user_data.customer_id && user_data.payment_method) {
+    return user_data;
   } else return null;
 }
 
@@ -97,22 +97,26 @@ const generatePaymentIntent = async (phoneNumber, product_id) => {
   try {
     const price = await get_price_object(product_id);
     const price_amount = price.unit_amount;
-    const customer_id = get_customer_id(phoneNumber);
-    let paymentIntent = null;
-    if (customer_id) {
-      // ToDo: generate a payment intent using the amount of the product
-      paymentIntent = await stripe.paymentIntents.create({
-        amount: price_amount,
-        currency: 'usd',
-        automatic_payment_methods: {
-          enabled: true,
-        },
-        // add the customer id of the user
-        customer: customer_id,
-        setup_future_usage: 'off_session',
-
-      });
-    }
+    const user = await get_customer_data(phoneNumber);
+    const customer_id = user.customer_id;
+    const payment_id = user.payment_method;
+    const email = user.customer_email;
+    console.log("customer Id: ", customer_id);
+    console.log("Payment ID: ", payment_id);
+    console.log("Email: ", email);
+    // ToDo: generate a payment intent using the amount of the product
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: price_amount,
+      currency: 'usd',
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      // add the customer id of the user
+      customer: customer_id,
+      setup_future_usage: 'off_session',
+      payment_method: payment_id,
+      receipt_email: email,
+    });
     return paymentIntent;
   } catch (error) {
     console.error("Error generating intent:", error.response ? error.response.data : error.message);

@@ -1,8 +1,10 @@
 const {getOpenAIResponse} = require('../services/openai_service');
 const {sendMessage, sendPaymentLinkMessage} = require('../services/whatsapp_service');
+const {sendConfirmationMessage} = require('../services/whatsapp_service');
 const admin = require("firebase-admin");
 // const {generatePaymentLink} = require('../services/stripe_service');
 const {generateCheckoutSession} = require('../services/stripe_service');
+const {generatePaymentIntent} = require('../services/stripe_service');
 // const OpenAI = require("openai");
 // require('dotenv').config();
 // const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
@@ -68,10 +70,12 @@ const handleCart = async (userPhone, message) => {
         await sendPaymentLinkMessage(userPhone, checkout_session.url);
         // await sendPaymentLinkMessage(userPhone, payment_link.url);
       } else {
-        console.log("I want to send a payment intent");
+        console.log("This is a returning user");
         // Returning user
         // ToDo: generate a payment intent of that user
-
+        const payment_intent = await generatePaymentIntent(userPhone, product_id);
+        console.log("This is the payment intent: ", payment_intent);
+        // const confrimed = await sendConfirmationMessage(userPhone, payment_intent.payment_method);
         // ToDo: send a message to confirm the payment intent
       }
     } else {
