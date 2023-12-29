@@ -11,7 +11,7 @@ const sendMessage = async (recipientPhone, messageContent) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO3xpicxJ48rsA0oeOeZB3N0zbtuSIbOJcgj2gV7yZCDrvdJIDkU0FZABatnBgAYG7W5gL9TaWIvEODupSK91ckaUZBnbixKZCZBlDzTDVE37fBpZBg1zZAEeY2Y43ZCT9ZBysUj6scXQbP8ZB6ZB2PiVWiGM8UvSNz9z895XnCWuABaZAJToc85ngzc6NpVTcFObhT9SDsmyArUMZD`, // Replace with your actual access token
+      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -39,7 +39,7 @@ const sendIntroMessage = async (recipientPhone, productName, personName = null, 
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO3xpicxJ48rsA0oeOeZB3N0zbtuSIbOJcgj2gV7yZCDrvdJIDkU0FZABatnBgAYG7W5gL9TaWIvEODupSK91ckaUZBnbixKZCZBlDzTDVE37fBpZBg1zZAEeY2Y43ZCT9ZBysUj6scXQbP8ZB6ZB2PiVWiGM8UvSNz9z895XnCWuABaZAJToc85ngzc6NpVTcFObhT9SDsmyArUMZD`, // Replace with your actual access token
+      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -68,7 +68,7 @@ const sendPaymentLinkMessage = async (recipientPhone, paymentURL) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO3xpicxJ48rsA0oeOeZB3N0zbtuSIbOJcgj2gV7yZCDrvdJIDkU0FZABatnBgAYG7W5gL9TaWIvEODupSK91ckaUZBnbixKZCZBlDzTDVE37fBpZBg1zZAEeY2Y43ZCT9ZBysUj6scXQbP8ZB6ZB2PiVWiGM8UvSNz9z895XnCWuABaZAJToc85ngzc6NpVTcFObhT9SDsmyArUMZD`, // Replace with your actual access token
+      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 

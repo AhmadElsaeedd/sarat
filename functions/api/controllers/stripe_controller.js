@@ -35,11 +35,12 @@ const postStripe = async (req, res) => {
   res.json({received: true});
 };
 
-async function create_customer(name, email, phone_number) {
+async function create_customer(name, email, phone_number, payment_method) {
   const customer = await stripe.customers.create({
     name: name,
     email: email,
     phone: phone_number,
+    payment_method: payment_method,
   });
   return customer;
 }
@@ -52,28 +53,39 @@ async function store_data(customer, phoneNumber) {
 
   // Purchase complete now I want to store the user's data
   await user_ref.set({
+    payment_method: customer.payment_method,
     customer_id: customer.id,
     customer_email: customer.email,
-    customer_name: customer.name,
+    // customer_name: customer.name,
     // reset the product
     current_product: "",
   }, {merge: true});
 }
 
-async function get_user_phone(payment_link) {
-  const paymentLink = await stripe.paymentLinks.retrieve(
-      payment_link,
-  );
-  const phone_number = paymentLink.metadata.phone;
-  return phone_number;
+// async function get_user_phone(payment_link) {
+//   const paymentLink = await stripe.paymentLinks.retrieve(
+//       payment_link,
+//   );
+//   const phone_number = paymentLink.metadata.phone;
+//   return phone_number;
+// }
+
+async function get_payment_method(setup_intent) {
+  const setupIntent = await stripe.setupIntents.retrieve(setup_intent);
+  const payment_method = setupIntent.payment_method;
+  return payment_method;
 }
 
 async function handlePurchase(session) {
-  // Here you should handle the purchase. This function is just a placeholder.
+  console.log("Session object is: ", session);
+  const setup_intent = session.setup_intent;
+  const payment_method = await get_payment_method(setup_intent);
   const user_email = session.customer_details.email;
-  const user_name = session.customer_details.name;
-  const user_phone = await get_user_phone(session.payment_link);
-  const customer = await create_customer(user_name, user_email, user_phone);
+  // const user_name = session.custom_fields.Name;
+  // const user_phone = await get_user_phone(session.payment_link);
+  const user_phone = session.metadata.phone;
+  // const customer = await create_customer(user_name, user_email, user_phone, payment_method);
+  const customer = await create_customer(user_email, user_phone, payment_method);
   await store_data(customer, user_phone);
 }
 

@@ -1,7 +1,8 @@
 const {getOpenAIResponse} = require('../services/openai_service');
 const {sendMessage, sendPaymentLinkMessage} = require('../services/whatsapp_service');
 const admin = require("firebase-admin");
-const {generatePaymentLink} = require('../services/stripe_service');
+// const {generatePaymentLink} = require('../services/stripe_service');
+const {generateCheckoutSession} = require('../services/stripe_service');
 // const OpenAI = require("openai");
 // require('dotenv').config();
 // const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
@@ -60,9 +61,12 @@ const handleCart = async (userPhone, message) => {
       if (!returning_user) {
         // First time user
         // ToDo: pass this product id to the stripe api to generate a link with it
-        const payment_link = await generatePaymentLink(userPhone, product_id);
+        // const payment_link = await generatePaymentLink(userPhone, product_id);
+        // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
+        const checkout_session = await generateCheckoutSession(userPhone, product_id);
         // ToDo: pass this payment link to the whatsapp service with the phone number of the user
-        await sendPaymentLinkMessage(userPhone, payment_link.url);
+        await sendPaymentLinkMessage(userPhone, checkout_session.url);
+        // await sendPaymentLinkMessage(userPhone, checkout_session.url);
       } else {
         console.log("I want to send a payment intent");
         // Returning user
