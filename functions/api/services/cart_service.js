@@ -66,7 +66,7 @@ const handleCart = async (userPhone, message) => {
         const checkout_session = await generateCheckoutSession(userPhone, product_id);
         // ToDo: pass this payment link to the whatsapp service with the phone number of the user
         await sendPaymentLinkMessage(userPhone, checkout_session.url);
-        // await sendPaymentLinkMessage(userPhone, checkout_session.url);
+        // await sendPaymentLinkMessage(userPhone, payment_link.url);
       } else {
         console.log("I want to send a payment intent");
         // Returning user

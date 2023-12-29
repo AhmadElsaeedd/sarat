@@ -35,17 +35,42 @@ const postStripe = async (req, res) => {
   res.json({received: true});
 };
 
-async function create_customer(name, email, phone_number, payment_method) {
+// async function create_customer(name, email, phone_number, payment_method) {
+//   console.log("HERE 1");
+//   const customer = await stripe.customers.create({
+//     // name: name,
+//     email: email,
+//     phone: phone_number,
+//     // payment_method: payment_method,
+//   });
+//   console.log("HERE 2");
+//   await stripe.paymentMethods.attach(
+//       payment_method,
+//       {
+//         customer: customer.id,
+//       },
+//   );
+//   console.log("HERE 3");
+//   return customer;
+// }
+
+async function create_customer(email, phone_number, payment_method) {
   const customer = await stripe.customers.create({
-    name: name,
+    // name: name,
     email: email,
     phone: phone_number,
-    payment_method: payment_method,
+    // payment_method: payment_method,
   });
+  await stripe.paymentMethods.attach(
+      payment_method,
+      {
+        customer: customer.id,
+      },
+  );
   return customer;
 }
 
-async function store_data(customer, phoneNumber) {
+async function store_data(customer, phoneNumber, payment_method) {
   if (typeof phoneNumber === 'number') {
     phoneNumber = phoneNumber.toString();
   }
@@ -53,7 +78,7 @@ async function store_data(customer, phoneNumber) {
 
   // Purchase complete now I want to store the user's data
   await user_ref.set({
-    payment_method: customer.payment_method,
+    payment_method: payment_method,
     customer_id: customer.id,
     customer_email: customer.email,
     // customer_name: customer.name,
@@ -81,12 +106,11 @@ async function handlePurchase(session) {
   const setup_intent = session.setup_intent;
   const payment_method = await get_payment_method(setup_intent);
   const user_email = session.customer_details.email;
-  // const user_name = session.custom_fields.Name;
+  // const user_name = session.customer_details.Name;
   // const user_phone = await get_user_phone(session.payment_link);
   const user_phone = session.metadata.phone;
-  // const customer = await create_customer(user_name, user_email, user_phone, payment_method);
   const customer = await create_customer(user_email, user_phone, payment_method);
-  await store_data(customer, user_phone);
+  await store_data(customer, user_phone, payment_method);
 }
 
 module.exports = {postStripe};

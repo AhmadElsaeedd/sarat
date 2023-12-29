@@ -36,6 +36,7 @@ async function generatePaymentLink(phoneNumber, product_id) {
       metadata: {
         phone: phoneNumber,
       },
+      customer_creation: 'always',
     });
     return paymentLink;
   } catch (error) {
