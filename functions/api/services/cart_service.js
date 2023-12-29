@@ -1,10 +1,12 @@
 const {getOpenAIResponse} = require('../services/openai_service');
 const {sendMessage, sendPaymentLinkMessage} = require('../services/whatsapp_service');
 const {sendConfirmationMessage} = require('../services/whatsapp_service');
+const {sendSuccessMessage} = require('../services/whatsapp_service');
 const admin = require("firebase-admin");
 // const {generatePaymentLink} = require('../services/stripe_service');
 const {generateCheckoutSession} = require('../services/stripe_service');
 const {generatePaymentIntent} = require('../services/stripe_service');
+const {confirmPaymentIntent} = require('../services/stripe_service');
 // const OpenAI = require("openai");
 // require('dotenv').config();
 // const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
@@ -50,6 +52,14 @@ async function user_has_customer_id(userPhone) {
   } else return false;
 }
 
+async function get_status(userPhone) {
+  const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_data = user_doc.data();
+  if (user_doc.exists) {
+    return user_data.payment_intent_status;
+  } else return null;
+}
+
 const handleCart = async (userPhone, message) => {
   try {
     const handle_text = is_text_handleable(message);
@@ -71,12 +81,17 @@ const handleCart = async (userPhone, message) => {
         // await sendPaymentLinkMessage(userPhone, payment_link.url);
       } else {
         console.log("This is a returning user");
+        const status = await get_status(userPhone);
+        if (status === "succeeded" || status === "") {
+          // ToDo: generate a payment intent of that user
+          const payment_intent = await generatePaymentIntent(userPhone, product_id);
+          // ToDo: send a message to confirm the payment intent
+          await sendConfirmationMessage(userPhone, payment_intent.payment_method);
+        } else if (status === "requires_confirmation") {
+          const payment_intent = await confirmPaymentIntent(userPhone);
+          await sendSuccessMessage(userPhone, payment_intent.status);
+        }
         // Returning user
-        // ToDo: generate a payment intent of that user
-        const payment_intent = await generatePaymentIntent(userPhone, product_id);
-        console.log("This is the payment intent: ", payment_intent);
-        // const confrimed = await sendConfirmationMessage(userPhone, payment_intent.payment_method);
-        // ToDo: send a message to confirm the payment intent
       }
     } else {
       const aiResponse = await getOpenAIResponse(userPhone, message);

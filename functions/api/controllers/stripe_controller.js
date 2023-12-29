@@ -1,6 +1,8 @@
 const stripe = require('stripe')('sk_test_51ORH1oCUveDWoBMaDE7JPwXOWNa9CIPQTiaWx3AXG05O9q4I2Ev6jwOP59f4zE1cpH84jC4NEq4aBiMGRHzWJnzM00mJCTwQx5');
 const endpointSecret = 'whsec_6pijIngHHM6o1qNAPjiKOMra4CJlI7ry';
 const admin = require("firebase-admin");
+// const {immediatePaymentIntent} = require('../services/stripe_service');
+const {generatePaymentIntent, confirmPaymentIntent} = require('../services/stripe_service');
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -78,12 +80,13 @@ async function store_data(customer, phoneNumber, payment_method) {
 
   // Purchase complete now I want to store the user's data
   await user_ref.set({
+    payment_intent_status: "",
     payment_method: payment_method,
     customer_id: customer.id,
     customer_email: customer.email,
     // customer_name: customer.name,
     // reset the product
-    current_product: "",
+    // current_product: "",
   }, {merge: true});
 }
 
@@ -94,6 +97,14 @@ async function store_data(customer, phoneNumber, payment_method) {
 //   const phone_number = paymentLink.metadata.phone;
 //   return phone_number;
 // }
+async function get_product_id(userPhone) {
+  const user_doc = await db.collection('Users').doc(userPhone).get();
+
+  if (user_doc.exists) {
+    const product_id = user_doc.data().current_product;
+    return product_id;
+  }
+}
 
 async function get_payment_method(setup_intent) {
   const setupIntent = await stripe.setupIntents.retrieve(setup_intent);
@@ -102,7 +113,6 @@ async function get_payment_method(setup_intent) {
 }
 
 async function handlePurchase(session) {
-  console.log("Session object is: ", session);
   const setup_intent = session.setup_intent;
   const payment_method = await get_payment_method(setup_intent);
   const user_email = session.customer_details.email;
@@ -111,6 +121,10 @@ async function handlePurchase(session) {
   const user_phone = session.metadata.phone;
   const customer = await create_customer(user_email, user_phone, payment_method);
   await store_data(customer, user_phone, payment_method);
+  const product_id = await get_product_id(user_phone);
+  // create a confirmed payment intent to charge the customer
+  await generatePaymentIntent(user_phone, product_id);
+  await confirmPaymentIntent(user_phone);
 }
 
 module.exports = {postStripe};

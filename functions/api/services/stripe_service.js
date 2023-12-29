@@ -92,6 +92,15 @@ const generateCheckoutSession = async (phoneNumber, product_id) => {
   }
 };
 
+async function update_status(phoneNumber, payment_intent) {
+  const user_ref = db.collection('Users').doc(phoneNumber);
+
+  await user_ref.set({
+    current_payment_intent: payment_intent.id,
+    payment_intent_status: payment_intent.status,
+  }, {merge: true});
+}
+
 
 const generatePaymentIntent = async (phoneNumber, product_id) => {
   try {
@@ -101,15 +110,13 @@ const generatePaymentIntent = async (phoneNumber, product_id) => {
     const customer_id = user.customer_id;
     const payment_id = user.payment_method;
     const email = user.customer_email;
-    console.log("customer Id: ", customer_id);
-    console.log("Payment ID: ", payment_id);
-    console.log("Email: ", email);
     // ToDo: generate a payment intent using the amount of the product
     const paymentIntent = await stripe.paymentIntents.create({
       amount: price_amount,
       currency: 'usd',
       automatic_payment_methods: {
         enabled: true,
+        allow_redirects: 'never',
       },
       // add the customer id of the user
       customer: customer_id,
@@ -117,10 +124,58 @@ const generatePaymentIntent = async (phoneNumber, product_id) => {
       payment_method: payment_id,
       receipt_email: email,
     });
+    await update_status(phoneNumber, paymentIntent);
     return paymentIntent;
   } catch (error) {
     console.error("Error generating intent:", error.response ? error.response.data : error.message);
   }
 };
 
-module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession};
+const confirmPaymentIntent = async (phoneNumber) => {
+  try {
+    const user = await get_customer_data(phoneNumber);
+    const payment_intent = user.current_payment_intent;
+    const payment_id = user.payment_method;
+    // ToDo: generate a payment intent using the amount of the product
+    const paymentIntent = await stripe.paymentIntents.confirm(
+        payment_intent,
+        {
+          payment_method: payment_id,
+        },
+    );
+    await update_status(phoneNumber, paymentIntent);
+    return paymentIntent;
+  } catch (error) {
+    console.error("Error generating intent:", error.response ? error.response.data : error.message);
+  }
+};
+
+// const immediatePaymentIntent = async (phoneNumber, product_id) => {
+//   try {
+//     const price = await get_price_object(product_id);
+//     const price_amount = price.unit_amount;
+//     const user = await get_customer_data(phoneNumber);
+//     const customer_id = user.customer_id;
+//     const payment_id = user.payment_method;
+//     const email = user.customer_email;
+//     // ToDo: generate a payment intent using the amount of the product that has confirmation true
+//     const paymentIntent = await stripe.paymentIntents.create({
+//       amount: price_amount,
+//       currency: 'usd',
+//       automatic_payment_methods: {
+//         enabled: true,
+//         allow_redirects: 'never',
+//       },
+//       // add the customer id of the user
+//       customer: customer_id,
+//       setup_future_usage: 'off_session',
+//       payment_method: payment_id,
+//       receipt_email: email,
+//     });
+//     return paymentIntent;
+//   } catch (error) {
+//     console.error("Error generating intent:", error.response ? error.response.data : error.message);
+//   }
+// };
+
+module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent};
