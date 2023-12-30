@@ -1,11 +1,5 @@
+const firebase_service = require('../services/firebase_service');
 const OpenAI = require("openai");
-const admin = require("firebase-admin");
-
-if (admin.apps.length === 0) {
-  admin.initializeApp();
-}
-
-const db = admin.firestore();
 
 require('dotenv').config();
 
@@ -43,29 +37,10 @@ function periodicallyCheckRun(thread_id, run_id) {
   });
 }
 
-async function check_user_thread(userPhone) {
-  const user_doc = await db.collection('Users').doc(userPhone).get();
-  const user_data = user_doc.data();
-
-  if (user_doc.exists && user_data.thread_id) {
-    const thread_id = user_data.thread_id;
-    return thread_id;
-  }
-  return null;
-}
-
-async function create_user(userPhone, thread_id) {
-  await db.collection('Users').doc(userPhone).set({
-    phone_number: userPhone,
-    thread_id: thread_id,
-    cart: [],
-  }, {merge: true});
-}
-
-const getOpenAIResponse = async (userPhone, message) => {
+async function getOpenAIResponse(userPhone, message) {
   try {
     let threadId;
-    threadId = await check_user_thread(userPhone);
+    threadId = await firebase_service.check_user_thread(userPhone);
 
     const myAssistant = await openai.beta.assistants.retrieve(
         "asst_oUlU2A4DdEbUVFFKRzgpF2Xt",
@@ -76,7 +51,7 @@ const getOpenAIResponse = async (userPhone, message) => {
       const thread = await openai.beta.threads.create();
       threadId = thread.id;
 
-      await create_user(userPhone, threadId);
+      await firebase_service.create_user(userPhone, threadId);
     }
 
     const myThread = await openai.beta.threads.retrieve(threadId);
@@ -107,6 +82,6 @@ const getOpenAIResponse = async (userPhone, message) => {
     console.error("Error in OpenAI Service:", error);
     throw error;
   }
-};
+}
 
 module.exports = {getOpenAIResponse};

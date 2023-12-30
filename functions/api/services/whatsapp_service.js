@@ -1,7 +1,10 @@
-const stripe = require('stripe')('sk_test_51ORH1oCUveDWoBMaDE7JPwXOWNa9CIPQTiaWx3AXG05O9q4I2Ev6jwOP59f4zE1cpH84jC4NEq4aBiMGRHzWJnzM00mJCTwQx5');
+const stripe_service = require('../services/stripe_service');
 const axios = require('axios');
 
-const sendMessage = async (recipientPhone, messageContent) => {
+const Whatsapp_Authorization = "EAAMxddllNeIBOZBOLabhhSa3Tnhe9WSb2Qs6FL06bFOZA9uhWauK83DkZBEudryXxiU7FPrpTnGsKrS9ZB1SvjMIETay8oqXZBYOWAboW1Uktp21mjPXZAmaD9XV3p6OzkBXxD7QaZBZBCwGnq3hbSBkHDSXQXdhqGwCMAkYehPvwnRDAFz6UYpddr5EXgEZCsBQBUaRUkkogxShRTv0S6lYZD";
+
+
+async function sendMessage(recipientPhone, messageContent) {
   try {
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
     const data = {
@@ -12,7 +15,7 @@ const sendMessage = async (recipientPhone, messageContent) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -21,14 +24,14 @@ const sendMessage = async (recipientPhone, messageContent) => {
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
-};
+}
 
 function create_greeting_message(productName, personName = null, productSize = null) {
   const message = `Hey${personName ? ' '+ personName + ',' : ','} ${productName} ${productSize ? 'in ' + productSize : ''} you loved is back! Text 'Yes' to claim yours. Fast, fabulous fashion is just a message away!`;
   return message;
 }
 
-const sendIntroMessage = async (recipientPhone, productName, personName = null, productSize= null) => {
+async function sendIntroMessage(recipientPhone, productName, personName = null, productSize= null) {
   try {
     const messageContent = create_greeting_message(productName, personName, productSize);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
@@ -40,7 +43,7 @@ const sendIntroMessage = async (recipientPhone, productName, personName = null, 
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -49,14 +52,14 @@ const sendIntroMessage = async (recipientPhone, productName, personName = null, 
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
-};
+}
 
 function create_payment_link_message(paymentURL) {
   const message = `Awesome! go here to complete your payment ${paymentURL}!`;
   return message;
 }
 
-const sendPaymentLinkMessage = async (recipientPhone, paymentURL) => {
+async function sendPaymentLinkMessage(recipientPhone, paymentURL) {
   try {
     const messageContent = create_payment_link_message(paymentURL);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
@@ -69,7 +72,7 @@ const sendPaymentLinkMessage = async (recipientPhone, paymentURL) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -78,13 +81,6 @@ const sendPaymentLinkMessage = async (recipientPhone, paymentURL) => {
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
-};
-
-async function get_card_details(payment_method_id) {
-  const paymentMethod = await stripe.paymentMethods.retrieve(
-      payment_method_id,
-  );
-  return paymentMethod;
 }
 
 function create_confirmation_message(card_details) {
@@ -95,9 +91,9 @@ function create_confirmation_message(card_details) {
   return message;
 }
 
-const sendConfirmationMessage = async (recipientPhone, payment_method_id) => {
+async function sendConfirmationMessage(recipientPhone, payment_method_id) {
   try {
-    const payment_details = await get_card_details(payment_method_id);
+    const payment_details = await stripe_service.get_card_details(payment_method_id);
     // const messageContent = create_payment_link_message(paymentURL);
     const messageContent = create_confirmation_message(payment_details);
     // const payment_method_object = await get_card_details(payment_method_id);
@@ -112,7 +108,7 @@ const sendConfirmationMessage = async (recipientPhone, payment_method_id) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -121,7 +117,7 @@ const sendConfirmationMessage = async (recipientPhone, payment_method_id) => {
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
-};
+}
 
 function create_success_message(payment_status) {
   const capitalizedStatus = payment_status.charAt(0).toUpperCase() + payment_status.slice(1);
@@ -129,7 +125,7 @@ function create_success_message(payment_status) {
   return message;
 }
 
-const sendSuccessMessage = async (recipientPhone, payment_status) => {
+async function sendSuccessMessage(recipientPhone, payment_status) {
   try {
     const messageContent = create_success_message(payment_status);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
@@ -142,7 +138,7 @@ const sendSuccessMessage = async (recipientPhone, payment_status) => {
       },
     };
     const headers = {
-      'Authorization': `Bearer EAAMxddllNeIBO9p1gQLEveDfI3REPeeZCfK9XMtEx6tAD4dwZBTrWDOoo5JDVTMahobUUBi38wNdNxWpVdPM2pF7j2nLZC3IZA8yhNbVchso3Tn9kH1pKc2X1gX0VV4NCwpMM31k55jU5fn2xWxUeePZAGZCUourSajdalnwiB0EYkiNp4LuZAZCZAhi7yiFZBLivG4ZAHJf0Y2UyFZBLJiQPN4ZD`, // Replace with your actual access token
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
 
@@ -151,6 +147,6 @@ const sendSuccessMessage = async (recipientPhone, payment_status) => {
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
-};
+}
 
 module.exports = {sendMessage, sendIntroMessage, sendPaymentLinkMessage, sendConfirmationMessage, sendSuccessMessage};
