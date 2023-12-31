@@ -1,7 +1,7 @@
 const stripe_service = require('../services/stripe_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBOZBOLabhhSa3Tnhe9WSb2Qs6FL06bFOZA9uhWauK83DkZBEudryXxiU7FPrpTnGsKrS9ZB1SvjMIETay8oqXZBYOWAboW1Uktp21mjPXZAmaD9XV3p6OzkBXxD7QaZBZBCwGnq3hbSBkHDSXQXdhqGwCMAkYehPvwnRDAFz6UYpddr5EXgEZCsBQBUaRUkkogxShRTv0S6lYZD";
+const Whatsapp_Authorization = "EAAMxddllNeIBO7ZCZCXE4mBZAizXwhZAL4Yxl1gnHNqcbCFzbeQrlQ2c6k2SXRuPADZAHvoZAw07kn7U4soSJHh3oBquQb2wTVauOfrLFNOG25VSfhfG3W4OQZCQ6Xe2VgII9cZCZBah0rmf3CTpKPKTHnRpkDcNDKUQBo0ITjIa9ZAPSpUsnjs3Krw9PxP4uAKArSlmCnRqpPYlgV42zy494ZD";
 
 
 async function sendMessage(recipientPhone, messageContent) {

@@ -66,7 +66,6 @@ async function create_user(userPhone, thread_id) {
   await db.collection('Users').doc(userPhone).set({
     phone_number: userPhone,
     thread_id: thread_id,
-    cart: [],
   }, {merge: true});
 }
 
