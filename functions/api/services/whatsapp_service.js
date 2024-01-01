@@ -1,7 +1,7 @@
 const stripe_service = require('../services/stripe_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBO7ZCZCXE4mBZAizXwhZAL4Yxl1gnHNqcbCFzbeQrlQ2c6k2SXRuPADZAHvoZAw07kn7U4soSJHh3oBquQb2wTVauOfrLFNOG25VSfhfG3W4OQZCQ6Xe2VgII9cZCZBah0rmf3CTpKPKTHnRpkDcNDKUQBo0ITjIa9ZAPSpUsnjs3Krw9PxP4uAKArSlmCnRqpPYlgV42zy494ZD";
+const Whatsapp_Authorization = "EAAMxddllNeIBO7pKBaRFFYiolVAiblP9pWibKMHmujcEIkltSptZCANuzQRnE6ZAEhyfoDSxpK6qf9LJvaZBaxTZACTYw1ngW29NkGfZC8OroHEAswNlZBZCZAPJhIrU8b8T1hvckLZBrYN1FwnmdqUIJZB3iX95WGLWwuZADsSS3wzS33BqwySK7poREkxL3eBumBuFZAgZC1utWakBZAIoZCZCSwQZD";
 
 
 async function sendMessage(recipientPhone, messageContent) {
@@ -149,4 +149,58 @@ async function sendSuccessMessage(recipientPhone, payment_status) {
   }
 }
 
-module.exports = {sendMessage, sendIntroMessage, sendPaymentLinkMessage, sendConfirmationMessage, sendSuccessMessage};
+function create_refund_message(refund_status) {
+  const capitalizedStatus = refund_status.charAt(0).toUpperCase() + refund_status.slice(1);
+  const message = `${capitalizedStatus}. Your payment has been canceled and the amount will be refunded to your card.`;
+  return message;
+}
+
+async function sendRefundMessage(recipientPhone, refund_status) {
+  try {
+    const messageContent = create_refund_message(refund_status);
+    const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
+    const data = {
+      messaging_product: 'whatsapp',
+      to: recipientPhone,
+      text: {
+        // preview_url: true,
+        body: messageContent,
+      },
+    };
+    const headers = {
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
+      'Content-Type': 'application/json',
+    };
+
+    const response = await axios.post(url, data, {headers: headers});
+    console.log("Message sent successfully:", response.data);
+  } catch (error) {
+    console.error("Error sending message:", error.response ? error.response.data : error.message);
+  }
+}
+
+async function sendFailureMessage(recipientPhone) {
+  try {
+    const messageContent = "Failed to refund.";
+    const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
+    const data = {
+      messaging_product: 'whatsapp',
+      to: recipientPhone,
+      text: {
+        // preview_url: true,
+        body: messageContent,
+      },
+    };
+    const headers = {
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
+      'Content-Type': 'application/json',
+    };
+
+    const response = await axios.post(url, data, {headers: headers});
+    console.log("Message sent successfully:", response.data);
+  } catch (error) {
+    console.error("Error sending message:", error.response ? error.response.data : error.message);
+  }
+}
+
+module.exports = {sendMessage, sendIntroMessage, sendPaymentLinkMessage, sendConfirmationMessage, sendSuccessMessage, sendRefundMessage, sendFailureMessage};

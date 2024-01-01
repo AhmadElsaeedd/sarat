@@ -3,44 +3,79 @@ const whatsapp_service = require('../services/whatsapp_service');
 const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 
-function is_text_handleable(text) {
-  if (text.toLowerCase() === "yes") return true;
-  else return false;
+function get_text_type(text) {
+  text = text.toLowerCase();
+  if (text === "yes") return "yes";
+  else if (text === "cancel") return "cancel";
+  else return "other";
+}
+
+function isCreatedInLast24Hours(obj) {
+  const currentTime = Math.floor(Date.now() / 1000); // current Unix timestamp in seconds
+  const creationTime = obj.created; // object's creation Unix timestamp
+  const diff = currentTime - creationTime;
+  return diff <= 86400; // true if created in last 24 hours, false otherwise
 }
 
 async function main_control(userPhone, message) {
   try {
-    const handle_text = is_text_handleable(message);
+    const text_type = get_text_type(message);
 
-    if (handle_text) {
-      // ToDo: get the product's id
-      const product_id = await firebase_service.get_product_id(userPhone);
-      // ToDo: see if the user is returning or is first time
-      const returning_user = await firebase_service.user_has_customer_id(userPhone);
-      if (!returning_user) {
+    switch (text_type) {
+      case "yes": {
+        // Handle 'yes' text
+        // ToDo: get the product's id
+        const product_id = await firebase_service.get_product_id(userPhone);
+        // ToDo: see if the user is returning or is first time
+        const returning_user = await firebase_service.user_has_customer_id(userPhone);
+        if (!returning_user) {
         // First time user
         // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
-        const checkout_session = await stripe_service.generateCheckoutSession(userPhone, product_id);
-        // ToDo: pass this payment link to the whatsapp service with the phone number of the user
-        await whatsapp_service.sendPaymentLinkMessage(userPhone, checkout_session.url);
-      } else {
+          const checkout_session = await stripe_service.generateCheckoutSession(userPhone, product_id);
+          // ToDo: pass this payment link to the whatsapp service with the phone number of the user
+          await whatsapp_service.sendPaymentLinkMessage(userPhone, checkout_session.url);
+        } else {
         // Returning user
-        const status = await firebase_service.get_status(userPhone);
-        if (status === "succeeded" || status === "") {
+          const status = await firebase_service.get_status(userPhone);
+          if (status === "succeeded" || status === "") {
           // ToDo: generate a payment intent of that user
-          const payment_intent = await stripe_service.generatePaymentIntent(userPhone, product_id);
-          // ToDo: send a message to confirm the payment intent
-          await whatsapp_service.sendConfirmationMessage(userPhone, payment_intent.payment_method);
-        } else if (status === "requires_confirmation") {
-          const payment_intent = await stripe_service.confirmPaymentIntent(userPhone);
-          await whatsapp_service.sendSuccessMessage(userPhone, payment_intent.status);
+            const payment_intent = await stripe_service.generatePaymentIntent(userPhone, product_id);
+            // ToDo: send a message to confirm the payment intent
+            await whatsapp_service.sendConfirmationMessage(userPhone, payment_intent.payment_method);
+          } else if (status === "requires_confirmation") {
+            const payment_intent = await stripe_service.confirmPaymentIntent(userPhone);
+            await whatsapp_service.sendSuccessMessage(userPhone, payment_intent.status);
+          }
         }
-        // Returning user
+        break;
       }
-    } else {
-      const aiResponse = await openai_service.getOpenAIResponse(userPhone, message);
-      // ToDo: pass this response to the whatsapp function that sends a message back to the user
-      await whatsapp_service.sendMessage(userPhone, aiResponse);
+      case "cancel": {
+        // Handle 'cancel' text
+        // get the user data from firebase
+        const user = await firebase_service.get_customer_data(userPhone);
+        const user_email = user.customer_email;
+        const current_payment_intent = user.current_payment_intent;
+        // get the customer id of the user from stripe using their email
+        const customer_id = await stripe_service.get_customer_id(user_email);
+        // get the id of the last payment intent of the user
+        const last_payment_intent = await stripe_service.get_last_payment_intent(customer_id);
+        // make sure that the one in firebase and the one from stripe are the same
+        if (current_payment_intent === last_payment_intent.id && isCreatedInLast24Hours(last_payment_intent)) {
+          // refund it
+          const refund_object = await stripe_service.create_refund(last_payment_intent.id);
+          await whatsapp_service.sendRefundMessage(userPhone, refund_object.status);
+        } else {
+          await whatsapp_service.sendFailureMessage(userPhone);
+        }
+        break;
+      }
+      default: {
+        // Handle other text
+        const aiResponse = await openai_service.getOpenAIResponse(userPhone, message);
+        // ToDo: pass this response to the whatsapp function that sends a message back to the user
+        await whatsapp_service.sendMessage(userPhone, aiResponse);
+        break;
+      }
     }
   } catch (error) {
     console.error("Error in Cart Service:", error);

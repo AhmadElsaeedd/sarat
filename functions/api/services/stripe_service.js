@@ -145,4 +145,37 @@ async function get_payment_method(setup_intent) {
   return payment_method;
 }
 
-module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id};
+async function get_customer_id(email) {
+  const customers = await stripe.customers.list({
+    limit: 1,
+    email: email,
+  });
+  if (customers.data.length === 0) {
+    throw new Error(`Customer with email ${email} not found`);
+  }
+
+  // Get the product id out of the product object
+  const customer_id = customers.data[0].id;
+  return customer_id;
+}
+
+async function get_last_payment_intent(customer_id) {
+  const paymentIntents = await stripe.paymentIntents.list({
+    limit: 1,
+    customer: customer_id,
+  });
+  if (paymentIntents.data.length === 0) {
+    throw new Error(`Payment intent for customer ${customer_id} not found`);
+  }
+
+  return paymentIntents.data[0];
+}
+
+async function create_refund(payment_intent) {
+  const refund = await stripe.refunds.create({
+    payment_intent: payment_intent,
+  });
+  return refund;
+}
+
+module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund};
