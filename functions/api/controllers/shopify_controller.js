@@ -1,5 +1,6 @@
 const axios = require('axios');
 const firebase_service = require('../services/firebase_service');
+const shopify_service = require('../services/shopify_service');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
 const scopes = 'read_products,write_orders'; // Comma-separated list of scopes
@@ -27,10 +28,11 @@ const handleAuthenticationCallback = async (req, res) => {
 
   try {
     const response = await axios.post(accessTokenRequestUrl, accessTokenPayload);
+    console.log("Response is: ", response.data);
     const accessToken = response.data.access_token;
     // TODO: Save the access token to your database associated with the shop
     console.log(`Access token for shop ${shop} is ${accessToken}`);
-    await firebase_service.save_brand_access_token(shop, accessToken);
+    await firebase_service.save_store_access_token(shop, accessToken);
 
     // Redirect the user to your app with the token or set the token in session
     res.status(200).send('Authentication successful. Check logs for the access token.');
@@ -63,6 +65,10 @@ const postShopify = async (req, res) => {
 const postShopifyAbandonedCarts = async (req, res) => {
   try {
     // This endpoint will just return all the users with abandoned carts
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+    console.log("Access token is: ", access_token);
+    await shopify_service.get_abandoned_orders(shop, access_token);
 
     // Then in the service code, we could make the api requests from shopofy with the parameters
 
@@ -70,7 +76,7 @@ const postShopifyAbandonedCarts = async (req, res) => {
 
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
-    console.error("Error in postShopify:", error);
+    console.error("Error in postShopifyAbandonedCarts:", error);
     res.status(500).send('Internal Server Error');
   }
 };

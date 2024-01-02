@@ -101,7 +101,7 @@ async function store_data(customer, phoneNumber, payment_method) {
   }, {merge: true});
 }
 
-async function save_brand_access_token(shop, access_token) {
+async function save_store_access_token(shop, access_token) {
   const stores_ref =db.collection('Shopify Stores').doc(shop);
 
   await stores_ref.set({
@@ -110,4 +110,13 @@ async function save_brand_access_token(shop, access_token) {
   }, {merge: true});
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_brand_access_token};
+async function get_store_access_token(shop) {
+  const store_doc = await db.collection('Shopify Stores').doc(shop).get();
+  const store_data = store_doc.data();
+  if (store_doc.exists) {
+    return store_data.shopify_access_token;
+  }
+  return null;
+}
+
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token};
