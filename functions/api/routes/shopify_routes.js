@@ -1,9 +1,11 @@
 const express = require('express');
 // eslint-disable-next-line new-cap
 const router = express.Router();
-const {getShopify, postShopify} = require('../controllers/shopify_controller');
+const shopify_controller = require('../controllers/shopify_controller');
 
-router.get('/', express.json(), getShopify);
-router.post('/', express.json(), postShopify);
+router.get('/', express.json(), shopify_controller.getShopify);
+router.post('/', express.json(), shopify_controller.postShopify);
+router.get('/auth', express.json(), shopify_controller.handleAuthentication);
+router.get('/auth/callback', express.json(), shopify_controller.handleAuthenticationCallback);
 
 module.exports = router;

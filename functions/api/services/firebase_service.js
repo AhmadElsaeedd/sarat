@@ -101,4 +101,13 @@ async function store_data(customer, phoneNumber, payment_method) {
   }, {merge: true});
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product};
+async function save_brand_access_token(shop, access_token) {
+  const stores_ref =db.collection('Shopify Stores').doc(shop);
+
+  await stores_ref.set({
+    shopify_access_token: access_token,
+    shop: shop,
+  }, {merge: true});
+}
+
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_brand_access_token};
