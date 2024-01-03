@@ -110,6 +110,7 @@ async function save_store_access_token(shop, access_token) {
     total_messages: 0,
     total_sales: 0,
     total_conversations: 0,
+    total_sales_volume: 0,
   }, {merge: true});
 }
 
@@ -154,6 +155,14 @@ async function increment_number_of_sales(shop) {
   });
 }
 
+async function increment_sales_volume(shop, amount) {
+  const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  await store_ref.update({
+    total_sales_volume: admin.firestore.FieldValue.increment(amount/100),
+  });
+}
+
 async function get_users_conversation(userPhone) {
   const user_doc = await db.collection('Users').doc(userPhone).get();
   const user_data = user_doc.data();
@@ -162,4 +171,4 @@ async function get_users_conversation(userPhone) {
   } else return null;
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation};
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_sales_volume};
