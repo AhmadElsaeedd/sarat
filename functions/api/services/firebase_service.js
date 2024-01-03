@@ -111,6 +111,12 @@ async function save_store_access_token(shop, access_token) {
     total_sales: 0,
     total_conversations: 0,
     total_sales_volume: 0,
+    abandoned_cart_message: "Hey${personName ? ' '+ personName + ',' : ','} would you like to buy ${productName} ${productSize ? 'in ' + productSize : ''} for a discount? Text 'Yes', and we'll send you a link with the discount code preloaded. Fast, fabulous fashion is just a message away!",
+    restock_message: "Hey${personName ? ' '+ personName + ',' : ','} ${productName} ${productSize ? 'in ' + productSize : ''} you loved is back! Text 'Yes' to claim yours. Fast, fabulous fashion is just a message away!",
+    payment_link_message: "Awesome! go here to complete your payment ${paymentURL}!",
+    payment_confirmation_message: "Awesome! Are you sure you want to pay with your ${capitalizedBrand} card ending with ${last4}? Say 'Yes' to confirm. You will be able to cancel in the next 24 hours.",
+    success_message: "${capitalizedStatus}! Text us 'Cancel' to cancel, only in the next 24 hours.",
+    refund_message: "${capitalizedStatus}. Your payment has been canceled and the amount will be refunded to your card.",
   }, {merge: true});
 }
 
@@ -179,6 +185,79 @@ async function get_users_conversation(userPhone) {
   } else return null;
 }
 
-// ToDo: implement decrementing the amount when the user refunds their purchase
+async function get_message_template(shop, type) {
+  const store_doc = await db.collection('Shopify Stores').doc(shop).get();
+  const store_data = store_doc.data();
+  if (store_doc.exists) {
+    switch (type) {
+      case 'abandoned_cart_message': {
+        // handle getting each message template template
+        return store_data.abandoned_cart_message;
+      }
+      case 'restock_message': {
+        return store_data.restock_message;
+      }
+      case 'payment_link_message': {
+        return store_data.payment_link_message;
+      }
+      case 'payment_confirmation_message': {
+        return store_data.payment_confirmation_message;
+      }
+      case 'success_message': {
+        return store_data.success_message;
+      }
+      case 'refund_message': {
+        return store_data.refund_message;
+      }
+    }
+  } else return null;
+}
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales};
+async function update_message_template(shop, type, content) {
+  const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  switch (type) {
+    case 'abandoned_cart_message': {
+      // handle the update of the abandoned cart template
+      await store_ref.set({
+        abandoned_cart_message: content,
+      }, {merge: true});
+      break;
+    }
+    case 'restock_message': {
+      await store_ref.set({
+        restock_message: content,
+      }, {merge: true});
+      break;
+    }
+    case 'payment_link_message': {
+      await store_ref.set({
+        payment_link_message: content,
+      }, {merge: true});
+      break;
+    }
+    case 'payment_confirmation_message': {
+      await store_ref.set({
+        payment_confirmation_message: content,
+      }, {merge: true});
+      break;
+    }
+    case 'success_message': {
+      await store_ref.set({
+        success_message: content,
+      }, {merge: true});
+      break;
+    }
+    case 'refund_message': {
+      await store_ref.set({
+        refund_message: content,
+      }, {merge: true});
+      break;
+    }
+    // ... handle other message templates
+    default:
+      console.log(`Unhandled update of message template for template: ${type}`);
+  }
+}
+
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template};

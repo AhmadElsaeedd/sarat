@@ -27,14 +27,17 @@ async function sendMessage(recipientPhone, messageContent) {
   }
 }
 
-function create_greeting_message(productName, personName = null, productSize = null) {
-  const message = `Hey${personName ? ' '+ personName + ',' : ','} ${productName} ${productSize ? 'in ' + productSize : ''} you loved is back! Text 'Yes' to claim yours. Fast, fabulous fashion is just a message away!`;
+function create_greeting_message(productName, personName = null, productSize = null, messageTemplate) {
+  // Check later whether I need ternary operators here or what to make the template replacable
+  // const message = `Hey${personName ? ' '+ personName + ',' : ','} ${productName} ${productSize ? 'in ' + productSize : ''} you loved is back! Text 'Yes' to claim yours. Fast, fabulous fashion is just a message away!`;
+  const message = messageTemplate;
   return message;
 }
 
 async function sendIntroMessage(recipientPhone, productName, personName = null, productSize= null, shop) {
   try {
-    const messageContent = create_greeting_message(productName, personName, productSize);
+    const messageTemplate = await firebase_service.get_message_template(shop, "restock_message");
+    const messageContent = create_greeting_message(productName, personName, productSize, messageTemplate);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
     const data = {
       messaging_product: 'whatsapp',
@@ -49,7 +52,6 @@ async function sendIntroMessage(recipientPhone, productName, personName = null, 
     };
     await firebase_service.increment_total_messages(shop);
     await firebase_service.increment_number_of_conversations(shop);
-    await firebase_service.user_enter_conversation(recipientPhone, shop);
     const response = await axios.post(url, data, {headers: headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
@@ -57,14 +59,17 @@ async function sendIntroMessage(recipientPhone, productName, personName = null, 
   }
 }
 
-function create_payment_link_message(paymentURL) {
-  const message = `Awesome! go here to complete your payment ${paymentURL}!`;
+function create_payment_link_message(paymentURL, message_template) {
+  // const message = `Awesome! go here to complete your payment ${paymentURL}!`;
+  const message = message_template;
   return message;
 }
 
 async function sendPaymentLinkMessage(recipientPhone, paymentURL) {
   try {
-    const messageContent = create_payment_link_message(paymentURL);
+    const shop = await firebase_service.get_users_conversation(recipientPhone);
+    const messageTemplate = await firebase_service.get_message_template(shop, "payment_link_message");
+    const messageContent = create_payment_link_message(paymentURL, messageTemplate);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
     const data = {
       messaging_product: 'whatsapp',
@@ -86,21 +91,21 @@ async function sendPaymentLinkMessage(recipientPhone, paymentURL) {
   }
 }
 
-function create_confirmation_message(card_details) {
-  const brand = card_details.card.brand;
-  const capitalizedBrand = brand.charAt(0).toUpperCase() + brand.slice(1);
-  const last4 = card_details.card.last4;
-  const message = `Awesome! Are you sure you want to pay with your ${capitalizedBrand} card ending with ${last4}? Say 'Yes' to confirm. You will be able to cancel in the next 24 hours.`;
+function create_confirmation_message(card_details, message_template) {
+  // const brand = card_details.card.brand;
+  // const capitalizedBrand = brand.charAt(0).toUpperCase() + brand.slice(1);
+  // const last4 = card_details.card.last4;
+  // const message = `Awesome! Are you sure you want to pay with your ${capitalizedBrand} card ending with ${last4}? Say 'Yes' to confirm. You will be able to cancel in the next 24 hours.`;
+  const message = message_template;
   return message;
 }
 
 async function sendConfirmationMessage(recipientPhone, payment_method_id) {
   try {
+    const shop = await firebase_service.get_users_conversation(recipientPhone);
+    const messageTemplate = await firebase_service.get_message_template(shop, "payment_link_message");
     const payment_details = await stripe_service.get_card_details(payment_method_id);
-    // const messageContent = create_payment_link_message(paymentURL);
-    const messageContent = create_confirmation_message(payment_details);
-    // const payment_method_object = await get_card_details(payment_method_id);
-    // console.log("Payment method object: ", payment_method_object);
+    const messageContent = create_confirmation_message(payment_details, messageTemplate);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
     const data = {
       messaging_product: 'whatsapp',
@@ -122,15 +127,18 @@ async function sendConfirmationMessage(recipientPhone, payment_method_id) {
   }
 }
 
-function create_success_message(payment_status) {
-  const capitalizedStatus = payment_status.charAt(0).toUpperCase() + payment_status.slice(1);
-  const message = `${capitalizedStatus}! Text us 'Cancel' to cancel, only in the next 24 hours.`;
+function create_success_message(payment_status, message_template) {
+  // const capitalizedStatus = payment_status.charAt(0).toUpperCase() + payment_status.slice(1);
+  // const message = `${capitalizedStatus}! Text us 'Cancel' to cancel, only in the next 24 hours.`;
+  const message = message_template;
   return message;
 }
 
 async function sendSuccessMessage(recipientPhone, payment_status) {
   try {
-    const messageContent = create_success_message(payment_status);
+    const shop = await firebase_service.get_users_conversation(recipientPhone);
+    const messageTemplate = await firebase_service.get_message_template(shop, "success_message");
+    const messageContent = create_success_message(payment_status, messageTemplate);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
     const data = {
       messaging_product: 'whatsapp',
@@ -152,15 +160,18 @@ async function sendSuccessMessage(recipientPhone, payment_status) {
   }
 }
 
-function create_refund_message(refund_status) {
-  const capitalizedStatus = refund_status.charAt(0).toUpperCase() + refund_status.slice(1);
-  const message = `${capitalizedStatus}. Your payment has been canceled and the amount will be refunded to your card.`;
+function create_refund_message(refund_status, message_template) {
+  // const capitalizedStatus = refund_status.charAt(0).toUpperCase() + refund_status.slice(1);
+  // const message = `${capitalizedStatus}. Your payment has been canceled and the amount will be refunded to your card.`;
+  const message = message_template;
   return message;
 }
 
 async function sendRefundMessage(recipientPhone, refund_status) {
   try {
-    const messageContent = create_refund_message(refund_status);
+    const shop = await firebase_service.get_users_conversation(recipientPhone);
+    const messageTemplate = await firebase_service.get_message_template(shop, "refund_message");
+    const messageContent = create_refund_message(refund_status, messageTemplate);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
     const data = {
       messaging_product: 'whatsapp',

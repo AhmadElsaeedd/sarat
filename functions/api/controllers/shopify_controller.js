@@ -73,7 +73,7 @@ const postShopifyAbandonedCarts = async (req, res) => {
 
     // Then, return the results of this post request in the database
 
-    res.status(200).send('EVENT RECEIVED');
+    res.status(200).send(abandoned_carts);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCarts:", error);
     res.status(500).send('Internal Server Error');
@@ -93,7 +93,7 @@ const postShopifyRefill = async (req, res) => {
 
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
-    console.error("Error in postShopifyAbandonedCarts:", error);
+    console.error("Error in postShopifyRefill:", error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -111,7 +111,7 @@ const postShopifyRestock = async (req, res) => {
 
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
-    console.error("Error in postShopifyAbandonedCarts:", error);
+    console.error("Error in postShopifyRestock:", error);
     res.status(500).send('Internal Server Error');
   }
 };

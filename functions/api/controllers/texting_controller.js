@@ -16,8 +16,9 @@ const postTexting = async (req, res) => {
     const productSize = req.body.productSize || null;
     // get the product id
     const productId = await stripe_service.get_product_id(productName);
-    // Update the document to be able to track what's happening
+    // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
     await firebase_service.update_current_product(phoneNumber, productId);
+    await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
     // Call sendIntroMessage
     await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize, shopDomain);
     res.status(200).send('EVENT RECEIVED');
