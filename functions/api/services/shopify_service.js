@@ -12,6 +12,21 @@ const axios = require('axios');
 //   apiVersion: LATEST_API_VERSION, // Use the latest API version
 // });
 
+async function get_customers_and_line_items(checkouts_array) {
+// Extracting customer and their line items
+  const customerOrders = checkouts_array.reduce((orders, checkout) => {
+    if (checkout.customer && checkout.customer.id && checkout.line_items) {
+      const orderInfo = {
+        customer: checkout.customer,
+        lineItems: checkout.line_items,
+      };
+      orders.push(orderInfo);
+    }
+    return orders;
+  }, []);
+  return customerOrders;
+}
+
 async function get_abandoned_orders(shop, access_token) {
   const url = `https://${shop}/admin/api/2023-10/checkouts.json?limit=1`;
 
@@ -21,8 +36,11 @@ async function get_abandoned_orders(shop, access_token) {
         'X-Shopify-Access-Token': access_token,
       },
     });
-    console.log("response data is: ", response.data);
-    return response.data; // or process the data as needed
+
+    const customer_orders = await get_customers_and_line_items(response.data.checkouts);
+
+    console.log("Customer orders: ", customer_orders);
+    return customer_orders;
   } catch (error) {
     console.error('Error fetching abandoned orders:', error);
     throw error;
