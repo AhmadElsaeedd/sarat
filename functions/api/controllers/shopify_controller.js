@@ -68,9 +68,8 @@ const postShopifyAbandonedCarts = async (req, res) => {
     const shop = req.body.shop;
     const access_token = await firebase_service.get_store_access_token(shop);
     console.log("Access token is: ", access_token);
-    await shopify_service.get_abandoned_orders(shop, access_token);
-
-    // Then in the service code, we could make the api requests from shopofy with the parameters
+    const abandoned_carts = await shopify_service.get_abandoned_orders(shop, access_token);
+    console.log("Abandoned carts are: ", abandoned_carts);
 
     // Then, return the results of this post request in the database
 
