@@ -133,6 +133,8 @@ async function confirmPaymentIntent(phoneNumber) {
         },
     );
     await firebase_service.update_status(phoneNumber, paymentIntent);
+    const shop = await firebase_service.get_users_conversation(phoneNumber);
+    await firebase_service.increment_number_of_sales(shop);
     return paymentIntent;
   } catch (error) {
     console.error("Error generating intent:", error.response ? error.response.data : error.message);

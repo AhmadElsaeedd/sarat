@@ -19,7 +19,7 @@ const postTexting = async (req, res) => {
     // Update the document to be able to track what's happening
     await firebase_service.update_current_product(phoneNumber, productId);
     // Call sendIntroMessage
-    await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize);
+    await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize, shopDomain);
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
     console.error("Error in postTexting:", error);

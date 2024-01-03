@@ -107,6 +107,9 @@ async function save_store_access_token(shop, access_token) {
   await stores_ref.set({
     shopify_access_token: access_token,
     shop: shop,
+    total_messages: 0,
+    total_sales: 0,
+    total_conversations: 0,
   }, {merge: true});
 }
 
@@ -119,4 +122,44 @@ async function get_store_access_token(shop) {
   return null;
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token};
+async function increment_total_messages(shop) {
+  const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  await store_ref.update({
+    total_messages: admin.firestore.FieldValue.increment(1),
+  });
+}
+
+async function increment_number_of_conversations(shop) {
+  const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  await store_ref.update({
+    total_conversations: admin.firestore.FieldValue.increment(1),
+  });
+}
+
+async function user_enter_conversation(phoneNumber, shop) {
+  const user_ref = db.collection('Users').doc(phoneNumber);
+
+  await user_ref.set({
+    in_conversation: shop,
+  }, {merge: true});
+}
+
+async function increment_number_of_sales(shop) {
+  const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  await store_ref.update({
+    total_sales: admin.firestore.FieldValue.increment(1),
+  });
+}
+
+async function get_users_conversation(userPhone) {
+  const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_data = user_doc.data();
+  if (user_doc.exists) {
+    return user_data.in_conversation;
+  } else return null;
+}
+
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation};

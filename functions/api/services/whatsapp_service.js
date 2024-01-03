@@ -1,7 +1,8 @@
 const stripe_service = require('../services/stripe_service');
+const firebase_service = require('../services/firebase_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBO7pKBaRFFYiolVAiblP9pWibKMHmujcEIkltSptZCANuzQRnE6ZAEhyfoDSxpK6qf9LJvaZBaxTZACTYw1ngW29NkGfZC8OroHEAswNlZBZCZAPJhIrU8b8T1hvckLZBrYN1FwnmdqUIJZB3iX95WGLWwuZADsSS3wzS33BqwySK7poREkxL3eBumBuFZAgZC1utWakBZAIoZCZCSwQZD";
+const Whatsapp_Authorization = "EAAMxddllNeIBOyQLzm5hOd70yl4hOQUTwoMA7W3tvjB2jdZAL8ZCbt4bOZBt81l1fDTpBmKZCfebMJyNmUy1SgITdsM4d0xfGhN0ACjdMEAfm4x3TNclAr9h70dW65HqS0UYWpFeNDAGaIfq98FDeoPWPvdI6ZCoGshVlXaAYZBymZBcX838ATnKwS2O1LOmh9aVEE9cxLvdulFla7JOK0ZD";
 
 
 async function sendMessage(recipientPhone, messageContent) {
@@ -31,7 +32,7 @@ function create_greeting_message(productName, personName = null, productSize = n
   return message;
 }
 
-async function sendIntroMessage(recipientPhone, productName, personName = null, productSize= null) {
+async function sendIntroMessage(recipientPhone, productName, personName = null, productSize= null, shop) {
   try {
     const messageContent = create_greeting_message(productName, personName, productSize);
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
@@ -46,7 +47,9 @@ async function sendIntroMessage(recipientPhone, productName, personName = null, 
       'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
-
+    await firebase_service.increment_total_messages(shop);
+    await firebase_service.increment_number_of_conversations(shop);
+    await firebase_service.user_enter_conversation(recipientPhone, shop);
     const response = await axios.post(url, data, {headers: headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
