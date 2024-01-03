@@ -62,11 +62,12 @@ async function main_control(userPhone, message) {
         // make sure that the one in firebase and the one from stripe are the same
         if (current_payment_intent === last_payment_intent.id && isCreatedInLast24Hours(last_payment_intent)) {
           // refund it
-          const refund_object = await stripe_service.create_refund(last_payment_intent.id);
+          const refund_object = await stripe_service.create_refund(userPhone, last_payment_intent.id);
           await whatsapp_service.sendRefundMessage(userPhone, refund_object.status);
         } else {
           await whatsapp_service.sendFailureMessage(userPhone);
         }
+        // Handle the part where we decrement the sales volume amount when the user refunds
         break;
       }
       default: {

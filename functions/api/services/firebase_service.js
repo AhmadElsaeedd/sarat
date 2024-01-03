@@ -155,7 +155,15 @@ async function increment_number_of_sales(shop) {
   });
 }
 
-async function increment_sales_volume(shop, amount) {
+async function decrement_number_of_sales(shop) {
+  const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  await store_ref.update({
+    total_sales: admin.firestore.FieldValue.increment(-1),
+  });
+}
+
+async function increment_decrement_sales_volume(shop, amount) {
   const store_ref = db.collection('Shopify Stores').doc(shop);
 
   await store_ref.update({
@@ -171,4 +179,6 @@ async function get_users_conversation(userPhone) {
   } else return null;
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_sales_volume};
+// ToDo: implement decrementing the amount when the user refunds their purchase
+
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales};
