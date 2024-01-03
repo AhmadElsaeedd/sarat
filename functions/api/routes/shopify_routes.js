@@ -6,6 +6,8 @@ const shopify_controller = require('../controllers/shopify_controller');
 router.get('/', express.json(), shopify_controller.getShopify);
 router.post('/', express.json(), shopify_controller.postShopify);
 router.post('/AbandonedCartUsers', express.json(), shopify_controller.postShopifyAbandonedCarts);
+router.post('/Refill', express.json(), shopify_controller.postShopifyRefill);
+router.post('/Restock', express.json(), shopify_controller.postShopifyRestock);
 router.get('/auth', express.json(), shopify_controller.handleAuthentication);
 router.get('/auth/callback', express.json(), shopify_controller.handleAuthenticationCallback);
 

@@ -80,5 +80,40 @@ const postShopifyAbandonedCarts = async (req, res) => {
   }
 };
 
+const postShopifyRefill = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
 
-module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback};
+    // How will we calculate that a product needs refilling
+    console.log("Access token is: ", access_token);
+
+    // Then, return the results of this post request in the database
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postShopifyAbandonedCarts:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postShopifyRestock = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+
+    // How will we calculate that a product needs refilling
+    console.log("Access token is: ", access_token);
+
+    // Then, return the results of this post request in the database
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postShopifyAbandonedCarts:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefill, postShopifyRestock};

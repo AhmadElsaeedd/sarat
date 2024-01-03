@@ -7,7 +7,8 @@ const postTexting = async (req, res) => {
     // Required parameters
     const productName = req.body.productName;
     const phoneNumber = req.body.phoneNumber;
-    if (!productName || !phoneNumber) {
+    const shopDomain = req.body.shop;
+    if (!productName || !phoneNumber || !shopDomain) {
       res.status(400).send('Missing required parameters');
     }
     // Optional parameters
