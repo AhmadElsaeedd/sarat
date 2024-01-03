@@ -12,6 +12,7 @@ const postTexting = async (req, res) => {
       res.status(400).send('Missing required parameters');
     }
     // Optional parameters
+    const messageType = req.body.messageType || null;
     const personName = req.body.personName || null;
     const productSize = req.body.productSize || null;
     // get the product id
@@ -20,7 +21,13 @@ const postTexting = async (req, res) => {
     await firebase_service.update_current_product(phoneNumber, productId);
     await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
     // Call sendIntroMessage
-    await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize, shopDomain);
+    // await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize, shopDomain);
+    if (messageType === null) {
+      await whatsapp_service.unifiedSendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
+    } else {
+      await whatsapp_service.unifiedSendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, messageType);
+    }
+
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
     console.error("Error in postTexting:", error);

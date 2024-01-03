@@ -5,6 +5,67 @@ const axios = require('axios');
 const Whatsapp_Authorization = "EAAMxddllNeIBOyQLzm5hOd70yl4hOQUTwoMA7W3tvjB2jdZAL8ZCbt4bOZBt81l1fDTpBmKZCfebMJyNmUy1SgITdsM4d0xfGhN0ACjdMEAfm4x3TNclAr9h70dW65HqS0UYWpFeNDAGaIfq98FDeoPWPvdI6ZCoGshVlXaAYZBymZBcX838ATnKwS2O1LOmh9aVEE9cxLvdulFla7JOK0ZD";
 
 
+async function unifiedSendMessage(recipientPhone, messageContent = null,
+    productName = null, personName = null, productSize= null,
+    paymentURL = null, refund_status = null,
+    payment_status = null, payment_method_id = null, message_type = null) {
+  try {
+    const shop = await firebase_service.get_users_conversation(recipientPhone);
+    const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
+    const headers = {
+      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
+      'Content-Type': 'application/json',
+    };
+    const messageTemplate = await firebase_service.get_message_template(shop, message_type);
+    switch (message_type) {
+      case 'abandoned_cart_message': {
+        // handle the case where it is an abandoned cart message
+        messageContent = create_greeting_message(productName, personName, productSize, messageTemplate);
+        await firebase_service.increment_number_of_conversations(shop);
+        break;
+      }
+      // Add the case for the restocking!
+      case 'payment_link_message': {
+        messageContent = create_payment_link_message(paymentURL, messageTemplate);
+        break;
+      }
+      case 'payment_confirmation_message': {
+        const payment_details = await stripe_service.get_card_details(payment_method_id);
+        messageContent = create_confirmation_message(payment_details, messageTemplate);
+        break;
+      }
+      case 'success_message': {
+        messageContent = create_success_message(payment_status, messageTemplate);
+        break;
+      }
+      case 'refund_message': {
+        messageContent = create_refund_message(refund_status, messageTemplate);
+        break;
+      }
+      case 'failed_refund': {
+        messageContent = "Failed to refund.";
+        break;
+      }
+      default: {
+        // this is the ai message and messageContent is already defined in the function call
+        break;
+      }
+    }
+    const data = {
+      messaging_product: 'whatsapp',
+      to: recipientPhone,
+      text: {
+        body: messageContent,
+      },
+    };
+    await firebase_service.increment_total_messages(shop);
+    const response = await axios.post(url, data, {headers: headers});
+    console.log("Message sent successfully:", response.data);
+  } catch (error) {
+    console.error("Error sending message:", error.response ? error.response.data : error.message);
+  }
+}
+
 async function sendMessage(recipientPhone, messageContent) {
   try {
     const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
@@ -19,7 +80,6 @@ async function sendMessage(recipientPhone, messageContent) {
       'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
       'Content-Type': 'application/json',
     };
-
     const response = await axios.post(url, data, {headers: headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
@@ -217,4 +277,4 @@ async function sendFailureMessage(recipientPhone) {
   }
 }
 
-module.exports = {sendMessage, sendIntroMessage, sendPaymentLinkMessage, sendConfirmationMessage, sendSuccessMessage, sendRefundMessage, sendFailureMessage};
+module.exports = {sendMessage, sendIntroMessage, sendPaymentLinkMessage, sendConfirmationMessage, sendSuccessMessage, sendRefundMessage, sendFailureMessage, unifiedSendMessage};
