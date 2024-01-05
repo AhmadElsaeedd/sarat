@@ -8,7 +8,7 @@ const db = admin.firestore();
 
 async function user_has_customer_id(userPhone) {
   try {
-    const user_doc = await db.collection('Users').doc(userPhone).get();
+    const user_doc = await db.collection('Customers').doc(userPhone).get();
     const user_data = user_doc.data();
     if (user_doc.exists && user_data.customer_id) {
       return true;
@@ -21,7 +21,7 @@ async function user_has_customer_id(userPhone) {
 
 async function get_product_id(userPhone) {
   try {
-    const user_doc = await db.collection('Users').doc(userPhone).get();
+    const user_doc = await db.collection('Customers').doc(userPhone).get();
 
     if (user_doc.exists) {
       const product_id = user_doc.data().current_product;
@@ -35,7 +35,7 @@ async function get_product_id(userPhone) {
 
 
 async function update_current_product(phoneNumber, productId) {
-  const user_ref = db.collection('Users').doc(phoneNumber);
+  const user_ref = db.collection('Customers').doc(phoneNumber);
   // Update the document
   await user_ref.set({
     current_product: productId,
@@ -44,7 +44,7 @@ async function update_current_product(phoneNumber, productId) {
 }
 
 async function get_status(userPhone) {
-  const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_doc = await db.collection('Customers').doc(userPhone).get();
   const user_data = user_doc.data();
   if (user_doc.exists) {
     return user_data.payment_intent_status;
@@ -52,7 +52,7 @@ async function get_status(userPhone) {
 }
 
 async function check_user_thread(userPhone) {
-  const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_doc = await db.collection('Customers').doc(userPhone).get();
   const user_data = user_doc.data();
 
   if (user_doc.exists && user_data.thread_id) {
@@ -63,14 +63,14 @@ async function check_user_thread(userPhone) {
 }
 
 async function create_user(userPhone, thread_id) {
-  await db.collection('Users').doc(userPhone).set({
+  await db.collection('Customers').doc(userPhone).set({
     phone_number: userPhone,
     thread_id: thread_id,
   }, {merge: true});
 }
 
 async function get_customer_data(phoneNumber) {
-  const user_doc = await db.collection('Users').doc(phoneNumber).get();
+  const user_doc = await db.collection('Customers').doc(phoneNumber).get();
   const user_data = user_doc.data();
   if (user_doc.exists && user_data.customer_id && user_data.payment_method) {
     return user_data;
@@ -78,7 +78,7 @@ async function get_customer_data(phoneNumber) {
 }
 
 async function update_status(phoneNumber, payment_intent) {
-  const user_ref = db.collection('Users').doc(phoneNumber);
+  const user_ref = db.collection('Customers').doc(phoneNumber);
 
   await user_ref.set({
     current_payment_intent: payment_intent.id,
@@ -90,7 +90,7 @@ async function store_data(customer, phoneNumber, payment_method) {
   if (typeof phoneNumber === 'number') {
     phoneNumber = phoneNumber.toString();
   }
-  const user_ref = db.collection('Users').doc(phoneNumber);
+  const user_ref = db.collection('Customers').doc(phoneNumber);
 
   // Purchase complete now I want to store the user's data
   await user_ref.set({
@@ -146,7 +146,7 @@ async function increment_number_of_conversations(shop) {
 }
 
 async function user_enter_conversation(phoneNumber, shop) {
-  const user_ref = db.collection('Users').doc(phoneNumber);
+  const user_ref = db.collection('Customers').doc(phoneNumber);
 
   await user_ref.set({
     in_conversation: shop,
@@ -178,7 +178,7 @@ async function increment_decrement_sales_volume(shop, amount) {
 }
 
 async function get_users_conversation(userPhone) {
-  const user_doc = await db.collection('Users').doc(userPhone).get();
+  const user_doc = await db.collection('Customers').doc(userPhone).get();
   const user_data = user_doc.data();
   if (user_doc.exists) {
     return user_data.in_conversation;
