@@ -9,7 +9,7 @@ const Whatsapp_headers = {
   'Content-Type': 'application/json',
 };
 
-async function unifiedSendMessage(recipientPhone, messageContent = null,
+async function sendMessage(recipientPhone, messageContent = null,
     productName = null, personName = null, productSize= null,
     paymentURL = null, refund_status = null,
     payment_status = null, payment_method_id = null, message_type = null) {
@@ -60,27 +60,6 @@ async function getMessageContent(message_type, messageContent, productName, pers
   }
 }
 
-async function sendMessage(recipientPhone, messageContent) {
-  try {
-    const url = 'https://graph.facebook.com/v18.0/147069021834152/messages';
-    const data = {
-      messaging_product: 'whatsapp',
-      to: recipientPhone,
-      text: {
-        body: messageContent,
-      },
-    };
-    const headers = {
-      'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
-      'Content-Type': 'application/json',
-    };
-    const response = await axios.post(url, data, {headers: headers});
-    console.log("Message sent successfully:", response.data);
-  } catch (error) {
-    console.error("Error sending message:", error.response ? error.response.data : error.message);
-  }
-}
-
 function create_greeting_message(productName, personName = null, productSize = null, messageTemplate) {
   const message = messageTemplate
       .replace('{personName}', personName ? ' '+ personName : ',')
@@ -117,4 +96,4 @@ function create_refund_message(refund_status, message_template) {
   return message;
 }
 
-module.exports = {sendMessage, unifiedSendMessage};
+module.exports = {sendMessage};
