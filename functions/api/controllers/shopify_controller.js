@@ -35,7 +35,8 @@ const handleAuthenticationCallback = async (req, res) => {
     await firebase_service.save_store_access_token(shop, accessToken);
 
     // Redirect the user to your app with the token or set the token in session
-    res.status(200).send('Authentication successful. Check logs for the access token.');
+    const redirectUrl = 'https://textlet0.retool.com/apps/4f1c9cfc-aaf6-11ee-8409-77d5b96375e9/Authentication%20flow';
+    res.redirect(redirectUrl);
   } catch (error) {
     res.status(500).send('Error during OAuth callback');
   }

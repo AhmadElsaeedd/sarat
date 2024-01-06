@@ -104,7 +104,11 @@ async function store_data(customer, phoneNumber, payment_method) {
 async function save_store_access_token(shop, access_token) {
   const stores_ref =db.collection('Shopify Stores').doc(shop);
 
+  // Generate a 4 character invitation code using lowercase characters and numbers
+  const invitation_code = Math.random().toString(36).substr(2, 4);
+
   await stores_ref.set({
+    invitation_code: invitation_code,
     limit_messages: 1000,
     shopify_access_token: access_token,
     shop: shop,
