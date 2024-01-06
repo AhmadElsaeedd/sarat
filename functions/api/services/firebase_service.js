@@ -116,10 +116,10 @@ async function save_store_access_token(shop, access_token) {
     total_sales: 0,
     total_conversations: 0,
     total_sales_volume: 0,
-    abandoned_cart_message: "Hey {personName}, would you like to buy {productName} {productSize} for a discount? Text 'Yes', and we'll send you a link with the discount code preloaded. Fast, fabulous fashion is just a message away!",
-    restock_message: "Hey {personName}, {productName} {productSize} you loved is back! Text 'Yes' to claim yours. Fast, fabulous fashion is just a message away!",
+    abandoned_cart_message: "Hey {personName}, would you like to buy {productName} for a discount? Text 'Yes', and we'll send you a link with the discount code preloaded!",
+    restock_message: "Hey {personName}, {productName} you loved is back! Text 'Yes' to claim yours!",
     payment_link_message: "Awesome! go here to complete your payment {paymentURL}!",
-    payment_confirmation_message: "Awesome! Are you sure you want to pay with your {brand} card ending with {last4}? Say 'Yes' to confirm. You will be able to cancel in the next 24 hours.",
+    payment_confirmation_message: "Awesome! Are you sure you want to pay with your {brand} card ending with {last4}? Say 'Yes' to confirm. You will be able to cancel in the next 24 hours, if you wish.",
     success_message: "{payment_status}! Text us 'Cancel' to cancel, only in the next 24 hours.",
     refund_message: "{refund_status}. Your payment has been canceled and the amount will be refunded to your card.",
   }, {merge: true});
