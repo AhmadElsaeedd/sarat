@@ -68,7 +68,6 @@ const postShopifyAbandonedCarts = async (req, res) => {
     const shop = req.body.shop;
     const access_token = await firebase_service.get_store_access_token(shop);
     const abandoned_carts = await shopify_service.get_abandoned_orders(shop, access_token);
-    console.log("Abandoned carts are: ", abandoned_carts);
 
     res.status(200).send(abandoned_carts);
   } catch (error) {
