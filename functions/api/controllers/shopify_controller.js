@@ -3,11 +3,10 @@ const firebase_service = require('../services/firebase_service');
 const shopify_service = require('../services/shopify_service');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
-const scopes = 'read_products,write_orders'; // Comma-separated list of scopes
+const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory'; // Comma-separated list of scopes
 const redirectUri = 'https://us-central1-textlet-test.cloudfunctions.net/webhook/shopify/auth/callback';
 
 const handleAuthentication = async (req, res) => {
-  console.log("I am here mate");
   const shop = req.query.shop;
   if (shop) {
     const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${shopifyApiKey}&scope=${scopes}&redirect_uri=${redirectUri}`;
@@ -68,11 +67,8 @@ const postShopifyAbandonedCarts = async (req, res) => {
     // This endpoint will just return all the users with abandoned carts
     const shop = req.body.shop;
     const access_token = await firebase_service.get_store_access_token(shop);
-    console.log("Access token is: ", access_token);
     const abandoned_carts = await shopify_service.get_abandoned_orders(shop, access_token);
     console.log("Abandoned carts are: ", abandoned_carts);
-
-    // Then, return the results of this post request in the database
 
     res.status(200).send(abandoned_carts);
   } catch (error) {
