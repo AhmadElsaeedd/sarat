@@ -44,4 +44,21 @@ async function get_abandoned_orders(shop, access_token) {
   }
 }
 
-module.exports = {get_abandoned_orders};
+async function get_products_for_refill_feature(shop, access_token) {
+  const url = `https://${shop}/admin/api/2023-10/products.json?fields=id,images,title`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching abandoned orders:', error);
+    throw error;
+  }
+}
+
+module.exports = {get_abandoned_orders, get_products_for_refill_feature};

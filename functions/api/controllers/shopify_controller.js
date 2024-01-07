@@ -112,4 +112,23 @@ const postShopifyRestock = async (req, res) => {
   }
 };
 
-module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefill, postShopifyRestock};
+const postShopifyGetProductsForRefillAfterField = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+    console.log("Access token is: ", access_token);
+
+    const products = await shopify_service.get_products_for_refill_feature(shop, access_token);
+    console.log("Those are the products: ", products);
+
+    // Then, return the results of this post request in the database
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postShopifyGetProductsForRefillAfterField:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefill, postShopifyRestock, postShopifyGetProductsForRefillAfterField};
