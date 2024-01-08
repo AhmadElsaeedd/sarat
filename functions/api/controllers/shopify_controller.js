@@ -3,7 +3,7 @@ const firebase_service = require('../services/firebase_service');
 const shopify_service = require('../services/shopify_service');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
-const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory'; // Comma-separated list of scopes
+const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products';
 const redirectUri = 'https://us-central1-textlet-test.cloudfunctions.net/webhook/shopify/auth/callback';
 
 const handleAuthentication = async (req, res) => {
@@ -128,4 +128,57 @@ const postShopifyGetProductsForRefillAfterField = async (req, res) => {
   }
 };
 
-module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefill, postShopifyRestock, postShopifyGetProductsForRefillAfterField};
+const postShopifyAddRefillAfterFieldToProduct = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const products = req.body.products;
+    const access_token = await firebase_service.get_store_access_token(shop);
+
+    await shopify_service.update_products_with_refill_field(shop, access_token, products);
+
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postShopifyAddRefillAfterFieldToProduct:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postShopifyCreateRefillAfterFieldToProduct = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const product = req.body.product;
+    const refill_after = req.body.refill_after;
+    const access_token = await firebase_service.get_store_access_token(shop);
+
+    const metafield = await shopify_service.create_products_refill_field(shop, access_token, product, refill_after);
+    console.log("This is the metafield: ", metafield);
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postShopifyAddRefillAfterFieldToProduct:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postGetProductByID = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const product_id = req.body.product_id;
+    const access_token = await firebase_service.get_store_access_token(shop);
+
+    const product = await shopify_service.get_product(shop, access_token, product_id);
+
+    console.log("This is the product now: ", product);
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postShopifyAddRefillAfterFieldToProduct:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefill, postShopifyRestock, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyCreateRefillAfterFieldToProduct};
