@@ -120,11 +120,8 @@ const postShopifyGetProductsForRefillAfterField = async (req, res) => {
     console.log("Access token is: ", access_token);
 
     const products = await shopify_service.get_products_for_refill_feature(shop, access_token);
-    console.log("Those are the products: ", products);
 
-    // Then, return the results of this post request in the database
-
-    res.status(200).send('EVENT RECEIVED');
+    res.status(200).send(products);
   } catch (error) {
     console.error("Error in postShopifyGetProductsForRefillAfterField:", error);
     res.status(500).send('Internal Server Error');

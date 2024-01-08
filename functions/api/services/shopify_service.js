@@ -44,6 +44,18 @@ async function get_abandoned_orders(shop, access_token) {
   }
 }
 
+async function get_needed_data_about_products(products) {
+  // products is an array
+  // this function will return the product id, all the urls of the images of the products, the product name,
+  return products.map((product) => {
+    return {
+      product_id: product.id,
+      product_image_urls: product.images.map((image) => image.src),
+      product_name: product.title,
+    };
+  });
+}
+
 async function get_products_for_refill_feature(shop, access_token) {
   const url = `https://${shop}/admin/api/2023-10/products.json?fields=id,images,title`;
 
@@ -54,7 +66,9 @@ async function get_products_for_refill_feature(shop, access_token) {
       },
     });
 
-    return response.data;
+    const sorted_products = await get_needed_data_about_products(response.data.products);
+
+    return sorted_products;
   } catch (error) {
     console.error('Error fetching abandoned orders:', error);
     throw error;
