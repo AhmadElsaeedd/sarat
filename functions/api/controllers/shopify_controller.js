@@ -117,7 +117,6 @@ const postShopifyGetProductsForRefillAfterField = async (req, res) => {
     // This endpoint will just return all the users that must refill their product
     const shop = req.body.shop;
     const access_token = await firebase_service.get_store_access_token(shop);
-    console.log("Access token is: ", access_token);
 
     const products = await shopify_service.get_products_for_refill_feature(shop, access_token);
 

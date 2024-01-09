@@ -45,16 +45,56 @@ async function get_abandoned_orders(shop, access_token) {
   }
 }
 
-async function get_needed_data_about_products(products) {
+async function products_refill_after_metafield(shop, access_token, product_id) {
+  const url = `https://${shop}/admin/api/2023-10/products/${product_id}/metafields.json?key=refill_after`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    // If 'refill_after' field exists, return its value
+    if (response.data.metafields && response.data.metafields.length > 0) {
+      return response.data.metafields[0].value;
+    }
+
+    // If 'refill_after' field does not exist, return null
+    return null;
+  } catch (error) {
+    console.error('Error fetching product metafields:', error);
+    throw error;
+  }
+}
+
+async function get_needed_data_about_products(shop, access_token, products) {
+  // We need to find the refill after metafield attached to the product here too
+  // const refill_after = await products_refill_after_metafield(shop, access_token, products);
+  // If there is no refill after field attached to the product just assing null
   // products is an array
   // this function will return the product id, all the urls of the images of the products, the product name,
-  return products.map((product) => {
-    return {
+  // return products.map((product) => {
+  //   return {
+  //     product_id: product.id,
+  //     product_image_url: product.images && product.images[0] ? product.images[0].src : null,
+  //     product_name: product.title,
+  //   };
+  // });
+
+  const structured_products = [];
+
+  for (const product of products) {
+    const refill_after = await products_refill_after_metafield(shop, access_token, product.id);
+    structured_products.push({
       product_id: product.id,
-      product_image_urls: product.images.map((image) => image.src),
+      product_image_url: product.images && product.images[0] ? product.images[0].src : null,
       product_name: product.title,
-    };
-  });
+      refill_after: refill_after,
+    });
+  }
+
+  return structured_products;
 }
 
 async function get_products_for_refill_feature(shop, access_token) {
@@ -67,55 +107,17 @@ async function get_products_for_refill_feature(shop, access_token) {
       },
     });
 
-    const sorted_products = await get_needed_data_about_products(response.data.products);
+    const products = await get_needed_data_about_products(shop, access_token, response.data.products);
 
-    return sorted_products;
+    return products;
   } catch (error) {
     console.error('Error fetching abandoned orders:', error);
     throw error;
   }
 }
 
-// async function update_products_with_refill_field(shop, access_token, products) {
-//   try {
-//     // Map each product to a PUT request
-//     const requests = products.map((product) => {
-//       const url = `https://${shop}/admin/api/2023-10/products/${product.id}.json`;
-
-//       // Prepare the data for the request
-//       const data = {
-//         product: {
-//           id: product.id,
-//           metafields: [
-//             {
-//               key: "refill_after",
-//               value: product.refill_after,
-//               type: "single_line_text_field",
-//               namespace: "global",
-//             },
-//           ],
-//         },
-//       };
-
-//       // Make the PUT request
-//       return axios.put(url, data, {
-//         headers: {
-//           'X-Shopify-Access-Token': access_token,
-//           'Content-Type': 'application/json',
-//         },
-//       });
-//     });
-
-//     // Execute all the requests concurrently
-//     await Promise.all(requests);
-//   } catch (error) {
-//     console.error('Error updating products:', error);
-//     throw error;
-//   }
-// }
-
 async function fallback_for_update_products_with_refill_field(shop, access_token, product) {
-  const product_url = `https://${shop}/admin/api/2023-10/products/${product.id}/metafields.json?key=refill_after`;
+  const product_url = `https://${shop}/admin/api/2023-10/products/${product.product_id}/metafields.json?key=refill_after`;
 
   try {
     const response = await axios.get(product_url, {
@@ -124,9 +126,7 @@ async function fallback_for_update_products_with_refill_field(shop, access_token
       },
     });
 
-    console.log("RESPONSE HERE IS: ", response.data.metafields);
-
-    const metafield_url = `https://${shop}/admin/api/2023-10/products/${product.id}/metafields/${response.data.metafields[0].id}.json`;
+    const metafield_url = `https://${shop}/admin/api/2023-10/products/${product.product_id}/metafields/${response.data.metafields[0].id}.json`;
 
     const data = {
       metafield: {
@@ -160,12 +160,12 @@ async function update_products_with_refill_field(shop, access_token, products) {
 
     // Loop over each product
     for (const product of products) {
-      const url = `https://${shop}/admin/api/2023-10/products/${product.id}.json`;
+      const url = `https://${shop}/admin/api/2023-10/products/${product.product_id}.json`;
 
       // Prepare the data for the request
       const data = {
         product: {
-          id: product.id,
+          id: product.product_id,
           metafields: [
             {
               key: "refill_after",
