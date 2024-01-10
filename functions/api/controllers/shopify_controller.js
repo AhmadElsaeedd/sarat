@@ -41,27 +41,6 @@ const handleAuthenticationCallback = async (req, res) => {
   }
 };
 
-const getShopify = (req, res) => {
-
-};
-
-const postShopify = async (req, res) => {
-  try {
-    // We can make this post endpoint with only 1 required parameter, specifiying the type of request to make to shopify
-
-    // Then some optional parameters to specify what we need from the endpoint in shopify, exactly the query maybe
-
-    // Then in the service code, we could make the api requests from shopofy with the parameters
-
-    // Then, return the results of this post request in the database
-
-    res.status(200).send('EVENT RECEIVED');
-  } catch (error) {
-    console.error("Error in postShopify:", error);
-    res.status(500).send('Internal Server Error');
-  }
-};
-
 const postShopifyAbandonedCarts = async (req, res) => {
   try {
     // This endpoint will just return all the users with abandoned carts
@@ -76,34 +55,21 @@ const postShopifyAbandonedCarts = async (req, res) => {
   }
 };
 
-const postShopifyRefill = async (req, res) => {
+const postShopifyRefillCustomers = async (req, res) => {
   try {
     // This endpoint will just return all the users that must refill their product
     const shop = req.body.shop;
     const access_token = await firebase_service.get_store_access_token(shop);
 
-    // How will we calculate that a product needs refilling
-    console.log("Access token is: ", access_token);
+    // Get all the products with their ids and refill_after field
+    const products = await shopify_service.get_products_for_refill_feature(shop, access_token);
 
-    // Then, return the results of this post request in the database
+    // Get all the customers who have more than 1 order already
+    const customer_ids = await shopify_service.get_customer_ids_for_refill_feature(shop, access_token);
 
-    res.status(200).send('EVENT RECEIVED');
-  } catch (error) {
-    console.error("Error in postShopifyRefill:", error);
-    res.status(500).send('Internal Server Error');
-  }
-};
+    const customers_who_need_refill = await shopify_service.get_customers_who_need_refill(shop, access_token, products, customer_ids);
 
-const postShopifyRestock = async (req, res) => {
-  try {
-    // This endpoint will just return all the users that must refill their product
-    const shop = req.body.shop;
-    const access_token = await firebase_service.get_store_access_token(shop);
-
-    // How will we calculate that a product needs refilling
-    console.log("Access token is: ", access_token);
-
-    // Then, return the results of this post request in the database
+    console.log("customers who need refill: ", customers_who_need_refill);
 
     res.status(200).send('EVENT RECEIVED');
   } catch (error) {
@@ -144,24 +110,6 @@ const postShopifyAddRefillAfterFieldToProduct = async (req, res) => {
   }
 };
 
-const postShopifyCreateRefillAfterFieldToProduct = async (req, res) => {
-  try {
-    // This endpoint will just return all the users that must refill their product
-    const shop = req.body.shop;
-    const product = req.body.product;
-    const refill_after = req.body.refill_after;
-    const access_token = await firebase_service.get_store_access_token(shop);
-
-    const metafield = await shopify_service.create_products_refill_field(shop, access_token, product, refill_after);
-    console.log("This is the metafield: ", metafield);
-
-    res.status(200).send('EVENT RECEIVED');
-  } catch (error) {
-    console.error("Error in postShopifyAddRefillAfterFieldToProduct:", error);
-    res.status(500).send('Internal Server Error');
-  }
-};
-
 const postGetProductByID = async (req, res) => {
   try {
     // This endpoint will just return all the users that must refill their product
@@ -180,4 +128,4 @@ const postGetProductByID = async (req, res) => {
   }
 };
 
-module.exports = {getShopify, postShopify, postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefill, postShopifyRestock, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyCreateRefillAfterFieldToProduct};
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID};

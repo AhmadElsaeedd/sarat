@@ -8,10 +8,8 @@ router.post('/', express.json(), shopify_controller.postShopify);
 router.post('/AbandonedCartUsers', express.json(), shopify_controller.postShopifyAbandonedCarts);
 router.post('/GetProductsForRefillAfterField', express.json(), shopify_controller.postShopifyGetProductsForRefillAfterField);
 router.post('/UpdateProductsWithRefillAfter', express.json(), shopify_controller.postShopifyAddRefillAfterFieldToProduct);
-router.post('/CreateProductsRefillAfter', express.json(), shopify_controller.postShopifyCreateRefillAfterFieldToProduct);
 router.post('/GetProduct', express.json(), shopify_controller.postGetProductByID);
-router.post('/Refill', express.json(), shopify_controller.postShopifyRefill);
-router.post('/Restock', express.json(), shopify_controller.postShopifyRestock);
+router.post('/GetRefillCustomers', express.json(), shopify_controller.postShopifyRefillCustomers);
 router.get('/auth', express.json(), shopify_controller.handleAuthentication);
 router.get('/auth/callback', express.json(), shopify_controller.handleAuthenticationCallback);
 

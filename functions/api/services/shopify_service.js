@@ -69,19 +69,6 @@ async function products_refill_after_metafield(shop, access_token, product_id) {
 }
 
 async function get_needed_data_about_products(shop, access_token, products) {
-  // We need to find the refill after metafield attached to the product here too
-  // const refill_after = await products_refill_after_metafield(shop, access_token, products);
-  // If there is no refill after field attached to the product just assing null
-  // products is an array
-  // this function will return the product id, all the urls of the images of the products, the product name,
-  // return products.map((product) => {
-  //   return {
-  //     product_id: product.id,
-  //     product_image_url: product.images && product.images[0] ? product.images[0].src : null,
-  //     product_name: product.title,
-  //   };
-  // });
-
   const structured_products = [];
 
   for (const product of products) {
@@ -242,4 +229,91 @@ async function get_product(shop, access_token, product_id) {
   }
 }
 
-module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field};
+async function get_customer_ids(customers) {
+  return customers.map((customer) => customer.id);
+}
+
+async function get_customer_ids_for_refill_feature(shop, access_token) {
+  const url = `https://${shop}/admin/api/2023-10/customers/search.json?query=orders_count%3A%3E%3D1`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    // get only the id's of the customers from response.data.customers in the function get_customer_ids
+    const customer_ids = await get_customer_ids(response.data.customers);
+
+    return customer_ids;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    throw error;
+  }
+}
+
+async function get_order_data(orders) {
+  return orders.map((order) => ({
+    line_items: order.line_items,
+    id: order.id,
+    processed_at: order.processed_at,
+  }));
+}
+
+async function get_customer_orders(shop, access_token, customer_id) {
+  const url = `https://${shop}/admin/api/2023-10/customers/${customer_id}/orders.json?status=closed`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    const orders = await get_order_data(response.data.orders);
+
+    return orders;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    throw error;
+  }
+}
+
+// Loop throuch each customer id in the array customer ids
+// Use get_customer_orders() to get the orders of the customers
+// Loop through each product in the line_items array
+// From the product object inside the line_items array you can get its id and each product in the array "products" has an `id` field
+// Compare the refill_after field of the product with the processed_at field of the order that the product belongs to
+// If the processed_at field is greater or equal than the refill_after after, then add an object to an array that will be returned from this function
+// Each object returned by this function should contain the customer id, the product id, the product name
+async function get_customers_who_need_refill(shop, access_token, products, customer_ids) {
+  const customersWhoNeedRefill = [];
+
+  for (const customerId of customer_ids) {
+    const orders = await get_customer_orders(shop, access_token, customerId);
+
+    for (const order of orders) {
+      for (const lineItem of order.line_items) {
+        const product = products.find((p) => p.product_id === lineItem.product_id);
+
+        // If the product's refill_after field is null, skip this product
+        if (!product || !product.refill_after) {
+          continue;
+        }
+
+        if (new Date(order.processed_at) >= new Date(product.refill_after)) {
+          customersWhoNeedRefill.push({
+            customer_id: customerId,
+            product_id: product.product_id,
+            product_name: product.product_name,
+          });
+        }
+      }
+    }
+  }
+
+  return customersWhoNeedRefill;
+}
+
+module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders};
