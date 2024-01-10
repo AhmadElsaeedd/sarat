@@ -234,7 +234,7 @@ async function get_customer_ids(customers) {
 }
 
 async function get_customer_ids_for_refill_feature(shop, access_token) {
-  const url = `https://${shop}/admin/api/2023-10/customers/search.json?query=orders_count%3A%3E%3D1`;
+  const url = `https://${shop}/admin/api/2023-10/customers/search.json?query=orders_count%3A%3E%3D1&fields=id`;
 
   try {
     const response = await axios.get(url, {
