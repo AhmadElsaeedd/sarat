@@ -69,9 +69,7 @@ const postShopifyRefillCustomers = async (req, res) => {
 
     const customers_who_need_refill = await shopify_service.get_customers_who_need_refill(shop, access_token, products, customer_ids);
 
-    console.log("customers who need refill: ", customers_who_need_refill);
-
-    res.status(200).send('EVENT RECEIVED');
+    res.status(200).send(customers_who_need_refill);
   } catch (error) {
     console.error("Error in postShopifyRestock:", error);
     res.status(500).send('Internal Server Error');

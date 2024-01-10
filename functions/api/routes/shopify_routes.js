@@ -3,8 +3,8 @@ const express = require('express');
 const router = express.Router();
 const shopify_controller = require('../controllers/shopify_controller');
 
-router.get('/', express.json(), shopify_controller.getShopify);
-router.post('/', express.json(), shopify_controller.postShopify);
+// router.get('/', express.json(), shopify_controller.getShopify);
+// router.post('/', express.json(), shopify_controller.postShopify);
 router.post('/AbandonedCartUsers', express.json(), shopify_controller.postShopifyAbandonedCarts);
 router.post('/GetProductsForRefillAfterField', express.json(), shopify_controller.postShopifyGetProductsForRefillAfterField);
 router.post('/UpdateProductsWithRefillAfter', express.json(), shopify_controller.postShopifyAddRefillAfterFieldToProduct);

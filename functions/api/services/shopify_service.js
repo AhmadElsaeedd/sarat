@@ -280,6 +280,38 @@ async function get_customer_orders(shop, access_token, customer_id) {
   }
 }
 
+async function get_customer_phone_number(shop, access_token, customer_id) {
+  const url = `https://${shop}/admin/api/2023-10/customers/${customer_id}.json`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    if (!response.data.customer.phone && !response.data.customer.addresses[0].phone && !(response.data.customer.default_address && response.data.customer.default_address)) {
+      return null;
+    }
+
+    const customer_phone_number = response.data.customer.phone || response.data.customer.addresses[0].phone || response.data.customer.default_address;
+
+    const data = {
+      phone_number: customer_phone_number,
+      name: response.data.customer.first_name,
+    };
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching customer phone number:', error);
+    throw error;
+  }
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // Loop throuch each customer id in the array customer ids
 // Use get_customer_orders() to get the orders of the customers
 // Loop through each product in the line_items array
@@ -303,14 +335,20 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
         }
 
         if (new Date(order.processed_at) >= new Date(product.refill_after)) {
+          // get the customer's phone number
+          const user_data = await get_customer_phone_number(shop, access_token, customerId);
           customersWhoNeedRefill.push({
             customer_id: customerId,
+            customer_phone: user_data.phone_number,
+            customer_name: user_data.name,
             product_id: product.product_id,
-            product_name: product.product_name,
+            product_title: product.product_name,
           });
         }
       }
     }
+
+    await delay(500); // delay for 500 milliseconds
   }
 
   return customersWhoNeedRefill;
