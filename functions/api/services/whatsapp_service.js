@@ -40,6 +40,11 @@ async function getMessageContent(message_type, messageContent, productName, pers
       await firebase_service.increment_number_of_conversations(shop);
       return create_greeting_message(productName, personName, productSize, messageTemplate);
     }
+    case 'refill_message':
+    {
+      await firebase_service.increment_number_of_conversations(shop);
+      return create_refill_message(productName, personName, productSize, messageTemplate);
+    }
     case 'payment_link_message': {
       return create_payment_link_message(paymentURL, messageTemplate);
     }
@@ -65,7 +70,13 @@ function create_greeting_message(productName, personName = null, productSize = n
       .replace('{personName}', personName ? ' '+ personName : ',')
       .replace('{productName}', productName)
       .replace('{productSize}', productSize ? 'in ' + productSize : '');
-  console.log("message is: ", message);
+  return message;
+}
+
+function create_refill_message(productName, personName = null, messageTemplate) {
+  const message = messageTemplate
+      .replace('{personName}', personName ? ' '+ personName : ',')
+      .replace('{productName}', productName);
   return message;
 }
 

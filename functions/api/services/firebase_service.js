@@ -118,6 +118,7 @@ async function save_store_access_token(shop, access_token) {
     total_sales_volume: 0,
     abandoned_cart_message: "Hey {personName}, would you like to buy {productName} for a discount? Text 'Yes', and we'll send you a link with the discount code preloaded!",
     restock_message: "Hey {personName}, {productName} you loved is back! Text 'Yes' to claim yours!",
+    refill_message: "Hey {personName}, would you like to buy {productName} again? Text 'Yes' to claim yours!",
     payment_link_message: "Awesome! go here to complete your payment {paymentURL}!",
     payment_confirmation_message: "Awesome! Are you sure you want to pay with your {brand} card ending with {last4}? Say 'Yes' to confirm. You will be able to cancel in the next 24 hours, if you wish.",
     success_message: "{payment_status}! Text us 'Cancel' to cancel, only in the next 24 hours.",
@@ -202,6 +203,9 @@ async function get_message_template(shop, type) {
       case 'restock_message': {
         return store_data.restock_message;
       }
+      case 'refill_message': {
+        return store_data.refill_message;
+      }
       case 'payment_link_message': {
         return store_data.payment_link_message;
       }
@@ -232,6 +236,12 @@ async function update_message_template(shop, type, content) {
     case 'restock_message': {
       await store_ref.set({
         restock_message: content,
+      }, {merge: true});
+      break;
+    }
+    case 'refill_message': {
+      await store_ref.set({
+        refill_message: content,
       }, {merge: true});
       break;
     }
