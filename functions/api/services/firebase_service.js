@@ -105,17 +105,12 @@ async function save_store_access_token(shop, access_token) {
   const stores_ref =db.collection('Shopify Stores').doc(shop);
 
   // Generate a 4 character invitation code using lowercase characters and numbers
-  const invitation_code = Math.random().toString(36).substr(2, 4);
+  const invitation_code = (Math.random().toString(36)+'0000').substring(2, 6);
 
   await stores_ref.set({
     invitation_code: invitation_code,
-    limit_messages: 1000,
     shopify_access_token: access_token,
     shop: shop,
-    total_messages: 0,
-    total_sales: 0,
-    total_conversations: 0,
-    total_sales_volume: 0,
     abandoned_cart_message: "Hey {personName}, would you like to buy {productName} for a discount? Text 'Yes', and we'll send you a link with the discount code preloaded!",
     restock_message: "Hey {personName}, {productName} you loved is back! Text 'Yes' to claim yours!",
     refill_message: "Hey {personName}, would you like to buy {productName} again? Text 'Yes' to claim yours!",
@@ -143,11 +138,27 @@ async function increment_total_messages(shop) {
   });
 }
 
+async function increment_messages(shop) {
+  const messageRef = db.collection('Shopify Stores').doc(shop).collection('Messages');
+  await messageRef.add({
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    // Add other relevant data if needed
+  });
+}
+
 async function increment_number_of_conversations(shop) {
   const store_ref = db.collection('Shopify Stores').doc(shop);
 
   await store_ref.update({
     total_conversations: admin.firestore.FieldValue.increment(1),
+  });
+}
+
+async function increment_conversations(shop) {
+  const conversationRef = db.collection('Shopify Stores').doc(shop).collection('Conversations');
+  await conversationRef.add({
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    // Add other relevant data if needed
   });
 }
 
@@ -167,11 +178,30 @@ async function increment_number_of_sales(shop) {
   });
 }
 
+async function increment_sales(shop, amount, payment_id) {
+  const salesRef = db.collection('Shopify Stores').doc(shop).collection('Sales').doc(payment_id);
+  await salesRef.add({
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    amount: amount,
+    // Add other relevant data for the sale
+  });
+}
+
 async function decrement_number_of_sales(shop) {
   const store_ref = db.collection('Shopify Stores').doc(shop);
 
   await store_ref.update({
     total_sales: admin.firestore.FieldValue.increment(-1),
+  });
+}
+
+async function refund_sale(shop, payment_id) {
+  const saleRef = db.collection('Shopify Stores').doc(shop).collection('Sales').doc(payment_id);
+  // Update the existing sale record to indicate a reversal or cancellation
+  await saleRef.update({
+    refunded: true,
+    refundTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+    // Other relevant reversal details
   });
 }
 
@@ -275,4 +305,4 @@ async function update_message_template(shop, type, content) {
   }
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template};
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale};

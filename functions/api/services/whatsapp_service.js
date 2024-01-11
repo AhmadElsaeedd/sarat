@@ -2,7 +2,7 @@ const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBO8uQoPF4ZBq5coj2qOVwexqBj6XbOGz2qsvwzz4KLZCQmt0razPULJEoU7GW0pQcZC2QWhkrZBX7Bq1zQeRHR4nFPwIw1aQh7MmiCZA5XtunBYwwOWk0V091mCb3R6UWKe1ATKedDQEi6ZBEOwylYRQnRgO4eVktxKjiwSh3ZBpikvjPhuhlkZBrXxQ5CjZBtN0vxu3G5ZBp0ZD";
+const Whatsapp_Authorization = "EAAMxddllNeIBOyVclIP2YhfxswvdZARTOFRJLvfcNelBCgUcbjVXeq4pV6hCoSMgmfWYZCV6TuRkABvUpMSC6dRI8VqGzbLcKs57aFZA2ZCQqqV9dQU8OU8iNesXlYgJPpZBGUvnoMhLArdUHJgIyYZB0vT1ZA1whv9NzQvzuHlc2LTsKg2os5kC1WXp7ppR1MlU9wlfqlVV3SfZB1FrKugZD";
 const Whatsapp_URL = "https://graph.facebook.com/v18.0/147069021834152/messages";
 const Whatsapp_headers = {
   'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
@@ -24,7 +24,8 @@ async function sendMessage(recipientPhone, messageContent = null,
         body: messageContent,
       },
     };
-    await firebase_service.increment_total_messages(shop);
+    // await firebase_service.increment_total_messages(shop);
+    await firebase_service.increment_messages(shop);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
@@ -37,12 +38,14 @@ async function getMessageContent(message_type, messageContent, productName, pers
   switch (message_type) {
     case 'abandoned_cart_message':
     {
-      await firebase_service.increment_number_of_conversations(shop);
+      // await firebase_service.increment_number_of_conversations(shop);
+      await firebase_service.increment_conversations(shop);
       return create_greeting_message(productName, personName, productSize, messageTemplate);
     }
     case 'refill_message':
     {
-      await firebase_service.increment_number_of_conversations(shop);
+      // await firebase_service.increment_number_of_conversations(shop);
+      await firebase_service.increment_conversations(shop);
       return create_refill_message(productName, personName, productSize, messageTemplate);
     }
     case 'payment_link_message': {
