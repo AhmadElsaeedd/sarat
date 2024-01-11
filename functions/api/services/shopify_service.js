@@ -349,7 +349,7 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
       }
     }
 
-    await delay(400); // delay for 500 milliseconds
+    await delay(450); // delay for 450 milliseconds
   }
 
   return customersWhoNeedRefill;
