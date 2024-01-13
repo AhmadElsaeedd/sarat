@@ -9,11 +9,12 @@ const Whatsapp_headers = {
   'Content-Type': 'application/json',
 };
 
-async function sendMessage(recipientPhone, messageContent = null,
+async function sendMessage(recipientPhone, productImage = null, messageContent = null,
     productName = null, personName = null, productSize= null,
     paymentURL = null, refund_status = null,
     payment_status = null, payment_method_id = null, message_type = null) {
   try {
+    // Here use the product image url to send the message to the customer
     const shop = await firebase_service.get_users_conversation(recipientPhone);
     const messageTemplate = await firebase_service.get_message_template(shop, message_type);
     messageContent = await getMessageContent(message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);

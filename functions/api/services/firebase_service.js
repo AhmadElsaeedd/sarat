@@ -34,11 +34,12 @@ async function get_product_id(userPhone) {
 }
 
 
-async function update_current_product(phoneNumber, productId) {
+async function update_current_product(phoneNumber, stripe_productId, shopify_productId) {
   const user_ref = db.collection('Customers').doc(phoneNumber);
   // Update the document
   await user_ref.set({
-    current_product: productId,
+    current_stripe_product_id: stripe_productId,
+    current_shopify_product_id: shopify_productId,
     phone_number: phoneNumber,
   }, {merge: true});
 }
