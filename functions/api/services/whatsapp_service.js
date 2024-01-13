@@ -16,8 +16,12 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
   try {
     // Here use the product image url to send the message to the customer
     const shop = await firebase_service.get_users_conversation(recipientPhone);
+    console.log("SHOP IS: ", shop);
+    console.log("Message type is: ", message_type);
     const messageTemplate = await firebase_service.get_message_template(shop, message_type);
+    console.log("MESSAGE TEMPLATE IS: ", messageTemplate);
     messageContent = await getMessageContent(message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
+    console.log("Message content is: ", messageContent);
     let data;
     console.log("product image is: ", productImage);
     if (productImage != null) {

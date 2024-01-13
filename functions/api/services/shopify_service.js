@@ -231,6 +231,48 @@ async function get_product(shop, access_token, product_id) {
   }
 }
 
+// Helper function to perform a HEAD request to get the MIME type of an image
+async function getMimeType(url) {
+  try {
+    const response = await axios.head(url);
+    return response.headers['content-type'];
+  } catch (error) {
+    console.error('Error fetching MIME type for URL:', url, error);
+    return null; // Return null if there's an error fetching the MIME type
+  }
+}
+
+// Helper function to filter images by supported MIME types
+async function filterSupportedImages(images) {
+  const supportedMimeTypes = ['image/jpeg', 'image/png'];
+  const checks = images.map(async (image) => {
+    const mimeType = await getMimeType(image.src);
+    return supportedMimeTypes.includes(mimeType) ? image : null;
+  });
+  const results = await Promise.all(checks);
+  return results.filter((image) => image !== null); // Filter out null values
+}
+
+async function get_product_image(shop, access_token, product_id) {
+  const url = `https://${shop}/admin/api/2023-10/products/${product_id}.json`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    const images = response.data.product.images;
+    const supportedImages = await filterSupportedImages(images);
+
+    return supportedImages.map((image) => image.src);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    throw error;
+  }
+}
+
 async function get_customer_ids(customers) {
   return customers.map((customer) => customer.id);
 }
@@ -357,4 +399,4 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
   return customersWhoNeedRefill;
 }
 
-module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders};
+module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image};
