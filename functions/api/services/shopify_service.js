@@ -222,7 +222,9 @@ async function get_product(shop, access_token, product_id) {
       },
     });
 
-    return response.data;
+    console.log("Response data: ", response.data);
+
+    return response.data.product;
   } catch (error) {
     console.error('Error fetching product:', error);
     throw error;

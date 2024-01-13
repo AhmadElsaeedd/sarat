@@ -2,7 +2,7 @@ const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBOyVclIP2YhfxswvdZARTOFRJLvfcNelBCgUcbjVXeq4pV6hCoSMgmfWYZCV6TuRkABvUpMSC6dRI8VqGzbLcKs57aFZA2ZCQqqV9dQU8OU8iNesXlYgJPpZBGUvnoMhLArdUHJgIyYZB0vT1ZA1whv9NzQvzuHlc2LTsKg2os5kC1WXp7ppR1MlU9wlfqlVV3SfZB1FrKugZD";
+const Whatsapp_Authorization = "EAAMxddllNeIBOzuJXilSGoUoxE38gty1hGZCMHhuJCbc03BrKfV850Y7zFF2SOetytoRR0LuPlWGz9m0ae6ScD9U8ZBgwZAxrWCOkg1lsmUnH9oahnOLZBYVRKGqWZAx6Hk0PPLXjLpeIzUNsFtZCSRPAHi0WDJXa4l1YvrnuG1V7QO0Cbta1SKqSXfPdNsyCRRDv6GDrOiiRfaxZAS0fkZD";
 const Whatsapp_URL = "https://graph.facebook.com/v18.0/147069021834152/messages";
 const Whatsapp_headers = {
   'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
@@ -18,13 +18,30 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
     const shop = await firebase_service.get_users_conversation(recipientPhone);
     const messageTemplate = await firebase_service.get_message_template(shop, message_type);
     messageContent = await getMessageContent(message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
-    const data = {
-      messaging_product: 'whatsapp',
-      to: recipientPhone,
-      text: {
-        body: messageContent,
-      },
-    };
+    let data;
+    console.log("product image is: ", productImage);
+    if (productImage != null) {
+      // send a message with a picture of the product
+      console.log("I am trying to send a message with a picture");
+      data = {
+        messaging_product: 'whatsapp',
+        to: recipientPhone,
+        type: 'image',
+        image: {
+          link: productImage,
+          caption: messageContent,
+        },
+      };
+    } else {
+      console.log("Not sending a message with a picture");
+      data = {
+        messaging_product: 'whatsapp',
+        to: recipientPhone,
+        text: {
+          body: messageContent,
+        },
+      };
+    }
     // await firebase_service.increment_total_messages(shop);
     await firebase_service.increment_messages(shop);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
@@ -35,7 +52,6 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
 }
 
 async function getMessageContent(message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop) {
-  console.log("message type is: ", message_type);
   switch (message_type) {
     case 'abandoned_cart_message':
     {

@@ -29,11 +29,13 @@ const postTexting = async (req, res) => {
     // Call sendIntroMessage
     // await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize, shopDomain);
     if (messageType === null) {
+      console.log("I am here 2");
       // await whatsapp_service.unifiedSendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
-      await whatsapp_service.sendMessage(phoneNumber, product.images[0].src, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
+      await whatsapp_service.sendMessage(phoneNumber, null, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
     } else {
+      console.log("I am here 1");
       // await whatsapp_service.unifiedSendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, messageType);
-      await whatsapp_service.sendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, messageType);
+      await whatsapp_service.sendMessage(phoneNumber, product.images[0].src, productName, personName, productSize, null, null, null, null, messageType);
     }
 
     res.status(200).send('EVENT RECEIVED');
