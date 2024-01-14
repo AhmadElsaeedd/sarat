@@ -5,6 +5,7 @@ const shopify_service = require('../services/shopify_service');
 
 const postTexting = async (req, res) => {
   try {
+    console.log(req.body);
     // Required parameters
     const productName = req.body.productName;
     const shopify_productId = req.body.productId;
@@ -24,8 +25,6 @@ const postTexting = async (req, res) => {
     await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
     const access_token = await firebase_service.get_store_access_token(shopDomain);
     const images = await shopify_service.get_product_image(shopDomain, access_token, shopify_productId);
-    console.log("HEREEREREEER");
-    console.log("Images are: ", images);
     // get the product image using product.images[0].src to find the product's image url
     // pass the product image into the sendMessage function
     // Call sendIntroMessage
@@ -48,7 +47,8 @@ const postTexting = async (req, res) => {
       if (messageType === null) {
         await whatsapp_service.sendMessage(phoneNumber, null, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
       } else if (messageType != null) {
-        await whatsapp_service.sendMessage(phoneNumber, images[0], productName, personName, productSize, null, null, null, null, messageType);
+        console.log("Message type is: ", messageType);
+        await whatsapp_service.sendMessage(phoneNumber, images[0], null, productName, personName, productSize, null, null, null, null, messageType);
       }
     }
 

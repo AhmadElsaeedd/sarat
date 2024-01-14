@@ -67,7 +67,7 @@ async function getMessageContent(message_type, messageContent, productName, pers
     {
       // await firebase_service.increment_number_of_conversations(shop);
       await firebase_service.increment_conversations(shop);
-      return create_refill_message(productName, personName, productSize, messageTemplate);
+      return create_refill_message(productName, personName, messageTemplate);
     }
     case 'payment_link_message': {
       return create_payment_link_message(paymentURL, messageTemplate);
@@ -99,7 +99,7 @@ function create_greeting_message(productName, personName = null, productSize = n
 
 function create_refill_message(productName, personName = null, messageTemplate) {
   const message = messageTemplate
-      .replace('{personName}', personName ? ' '+ personName : ',')
+      .replace('{personName}', personName ? ' '+ personName : '')
       .replace('{productName}', productName);
   return message;
 }

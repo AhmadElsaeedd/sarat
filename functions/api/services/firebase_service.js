@@ -181,7 +181,7 @@ async function increment_number_of_sales(shop) {
 
 async function increment_sales(shop, amount, payment_id) {
   const salesRef = db.collection('Shopify Stores').doc(shop).collection('Sales').doc(payment_id);
-  await salesRef.add({
+  await salesRef.set({
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
     amount: amount,
     // Add other relevant data for the sale

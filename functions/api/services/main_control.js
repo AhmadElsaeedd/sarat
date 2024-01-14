@@ -33,7 +33,7 @@ async function main_control(userPhone, message) {
         // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
           const checkout_session = await stripe_service.generateCheckoutSession(userPhone, product_id);
           // ToDo: pass this payment link to the whatsapp service with the phone number of the user
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
+          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
         } else {
         // Returning user
           const status = await firebase_service.get_status(userPhone);
@@ -41,10 +41,12 @@ async function main_control(userPhone, message) {
           // ToDo: generate a payment intent of that user
             const payment_intent = await stripe_service.generatePaymentIntent(userPhone, product_id);
             // ToDo: send a message to confirm the payment intent
-            await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
+            await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
           } else if (status === "requires_confirmation") {
+            console.log("HERE");
             const payment_intent = await stripe_service.confirmPaymentIntent(userPhone);
-            await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, payment_intent.status, null, "success_message");
+            console.log("Payment intent sutatus is: ", payment_intent.status);
+            await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, payment_intent.status, null, "success_message");
           }
         }
         break;
@@ -62,9 +64,9 @@ async function main_control(userPhone, message) {
         if (current_payment_intent === last_payment_intent.id && isCreatedInLast24Hours(last_payment_intent)) {
           // refund it
           const refund_object = await stripe_service.create_refund(userPhone, last_payment_intent.id);
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, refund_object.status, null, null, "refund_message");
+          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, refund_object.status, null, null, "refund_message");
         } else {
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, "failed_refund");
+          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, null, "failed_refund");
         }
         // Handle the part where we decrement the sales volume amount when the user refunds
         break;
@@ -73,7 +75,7 @@ async function main_control(userPhone, message) {
         // Handle other text
         const aiResponse = await openai_service.getOpenAIResponse(userPhone, message);
         // ToDo: pass this response to the whatsapp function that sends a message back to the user
-        await whatsapp_service.sendMessage(userPhone, aiResponse, null, null, null, null, null, null, null, null);
+        await whatsapp_service.sendMessage(userPhone, null, aiResponse, null, null, null, null, null, null, null, null);
         break;
       }
     }
