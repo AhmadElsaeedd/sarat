@@ -3,6 +3,52 @@ const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 const shopify_service = require('../services/shopify_service');
 
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+const postSendMessageToMass = async (req, res) => {
+  try {
+    // The three parameters that are passed to the endpoint
+    const shopDomain = req.body.shop;
+    const selected_people = req.body.selectedPeople;
+    const messageType = req.body.messageType || null;
+
+    const length = req.body.selectedPeople.length;
+
+    for (let i = 0; i < length; i++) {
+      const productSize = selected_people[i].product_variant_title || null;
+      const productName = selected_people[i].product_title;
+      const phoneNumber = selected_people[i].customer_phone;
+      const shopify_productId = selected_people[i].product_id;
+      const personName = selected_people[i].customer_name;
+
+      const stripe_productId = await stripe_service.get_product_id(productName);
+      // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
+      await firebase_service.update_current_product(phoneNumber, stripe_productId, shopify_productId);
+      await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
+      const access_token = await firebase_service.get_store_access_token(shopDomain);
+      const images = await shopify_service.get_product_image(shopDomain, access_token, shopify_productId);
+
+      if (!Array.isArray(images) || images.length === 0) {
+        console.error("No images available or 'images' is not an array");
+      } else {
+        // Proceed with the rest of the code
+        if (messageType === null) {
+          await whatsapp_service.sendMessage(phoneNumber, null, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
+        } else if (messageType != null) {
+          console.log("Message type is: ", messageType);
+          await whatsapp_service.sendMessage(phoneNumber, images[0], null, productName, personName, productSize, null, null, null, null, messageType);
+        }
+      }
+      await delay(500);
+    }
+
+    res.status(200).send('EVENTS RECEIVED');
+  } catch (error) {
+    console.error("Error in postSendMessageToMass:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
 const postTexting = async (req, res) => {
   try {
     console.log(req.body);
@@ -60,4 +106,4 @@ const postTexting = async (req, res) => {
 };
 
 
-module.exports = {postTexting};
+module.exports = {postTexting, postSendMessageToMass};
