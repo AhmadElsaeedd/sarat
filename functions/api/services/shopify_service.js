@@ -68,6 +68,23 @@ async function products_refill_after_metafield(shop, access_token, product_id) {
   }
 }
 
+async function get_product_names_and_prices(shop, access_token) {
+  const url = `https://${shop}/admin/api/2023-10/products.json?fields=id,title,variants`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    return response.data.products;
+  } catch (error) {
+    console.error('Error fetching abandoned orders:', error);
+    throw error;
+  }
+}
+
 async function get_needed_data_about_products(shop, access_token, products) {
   const structured_products = [];
 
@@ -221,8 +238,6 @@ async function get_product(shop, access_token, product_id) {
         'X-Shopify-Access-Token': access_token,
       },
     });
-
-    console.log("Response data: ", response.data);
 
     return response.data.product;
   } catch (error) {
@@ -399,4 +414,4 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
   return customersWhoNeedRefill;
 }
 
-module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image};
+module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices};

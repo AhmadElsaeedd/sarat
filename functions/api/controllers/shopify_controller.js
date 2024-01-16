@@ -1,6 +1,7 @@
 const axios = require('axios');
 const firebase_service = require('../services/firebase_service');
 const shopify_service = require('../services/shopify_service');
+const stripe_service = require('../services/stripe_service');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
 const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products';
@@ -38,6 +39,34 @@ const handleAuthenticationCallback = async (req, res) => {
     res.redirect(redirectUrl);
   } catch (error) {
     res.status(500).send('Error during OAuth callback');
+  }
+};
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const postShopifyOnboardBrand = async (req, res) => {
+  try {
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+    const store_currency = await firebase_service.get_store_currency(shop);
+
+    const products = await shopify_service.get_product_names_and_prices(shop, access_token);
+
+    for (const product of products) {
+      const price = product.variants[0].price;
+      const title = product.title;
+      const id = product.id;
+      await stripe_service.createProductAndPrice(title, id, price, store_currency);
+      await delay(1000); // Delay of 1 second (1000 milliseconds) between each API call
+    }
+
+
+    res.status(200).send(products);
+  } catch (error) {
+    console.error("Error in postShopifyOnboardBrand:", error);
+    res.status(500).send('Internal Server Error');
   }
 };
 
@@ -126,4 +155,4 @@ const postGetProductByID = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID};
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand};

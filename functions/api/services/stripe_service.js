@@ -186,4 +186,30 @@ async function create_refund(phoneNumber, payment_intent) {
   return refund;
 }
 
-module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund};
+async function createProductAndPrice(productName, shopify_product_id, price, currency) {
+  try {
+    // Create a product
+    const product = await stripe.products.create({
+      name: productName,
+      metadata: {
+        shopify_product_id: shopify_product_id,
+      },
+    });
+
+    // Create a price for the product
+    // Note: Convert price to the smallest unit (most currencies that are relevant to us are this)
+    // USD, EUR, AED, EGP, GBP, AUD, CHF, ZAR, INR, SGD, HKD, NZD, SEK, DKK, NOK, MXN, BRL, MYR, PHP, THB
+    const priceInSmallestUnit = parseInt(parseFloat(price) * 100);
+    await stripe.prices.create({
+      unit_amount: priceInSmallestUnit,
+      currency: currency.toLowerCase(),
+      product: product.id,
+    });
+
+    console.log(`Product created: ${productName} with price: ${price}`);
+  } catch (error) {
+    console.error(`Error creating product: ${productName}`, error);
+  }
+}
+
+module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice};

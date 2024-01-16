@@ -109,6 +109,7 @@ async function save_store_access_token(shop, access_token) {
   const invitation_code = (Math.random().toString(36)+'0000').substring(2, 6);
 
   await stores_ref.set({
+    currency: "usd",
     invitation_code: invitation_code,
     shopify_access_token: access_token,
     shop: shop,
@@ -127,6 +128,15 @@ async function get_store_access_token(shop) {
   const store_data = store_doc.data();
   if (store_doc.exists) {
     return store_data.shopify_access_token;
+  }
+  return null;
+}
+
+async function get_store_currency(shop) {
+  const store_doc = await db.collection('Shopify Stores').doc(shop).get();
+  const store_data = store_doc.data();
+  if (store_doc.exists) {
+    return store_data.currency;
   }
   return null;
 }
@@ -306,4 +316,4 @@ async function update_message_template(shop, type, content) {
   }
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale};
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency};

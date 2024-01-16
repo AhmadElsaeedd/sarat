@@ -10,6 +10,7 @@ router.post('/GetProductsForRefillAfterField', express.json(), shopify_controlle
 router.post('/UpdateProductsWithRefillAfter', express.json(), shopify_controller.postShopifyAddRefillAfterFieldToProduct);
 router.post('/GetProduct', express.json(), shopify_controller.postGetProductByID);
 router.post('/GetRefillCustomers', express.json(), shopify_controller.postShopifyRefillCustomers);
+router.post('/OnboardBrand', express.json(), shopify_controller.postShopifyOnboardBrand);
 router.get('/auth', express.json(), shopify_controller.handleAuthentication);
 router.get('/auth/callback', express.json(), shopify_controller.handleAuthenticationCallback);
 
