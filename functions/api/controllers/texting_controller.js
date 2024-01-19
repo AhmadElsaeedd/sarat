@@ -92,5 +92,25 @@ const postTexting = async (req, res) => {
   }
 };
 
+const postTextingSendMessage = async (req, res) => {
+  try {
+    // Required parameters
+    const phoneNumber = req.body.phoneNumber;
+    const messageContent = req.body.messageContent;
+    const shopDomain = req.body.shop;
+    if (!messageContent || !phoneNumber || !shopDomain) {
+      res.status(400).send('Missing required parameters');
+    }
+    await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
 
-module.exports = {postTexting, postSendMessageToMass};
+    await whatsapp_service.sendMessage(phoneNumber, null, messageContent, null, null, null, null, null, null, null, "user_generated");
+
+    res.status(200).send('EVENT RECEIVED');
+  } catch (error) {
+    console.error("Error in postTexting:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+module.exports = {postTexting, postSendMessageToMass, postTextingSendMessage};

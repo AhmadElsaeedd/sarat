@@ -40,7 +40,7 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
       };
     }
     // await firebase_service.increment_total_messages(shop);
-    await firebase_service.increment_messages(shop, "brand", recipientPhone, messageContent);
+    await firebase_service.increment_messages(shop, "You", recipientPhone, messageContent);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
