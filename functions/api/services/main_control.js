@@ -20,7 +20,8 @@ function isCreatedInLast24Hours(obj) {
 async function main_control(userPhone, message) {
   try {
     const text_type = get_text_type(message);
-
+    const current_shop = await firebase_service.get_users_conversation(userPhone);
+    await firebase_service.increment_messages(current_shop, userPhone, "brand", message);
     switch (text_type) {
       case "yes": {
         // Handle 'yes' text
@@ -43,9 +44,7 @@ async function main_control(userPhone, message) {
             // ToDo: send a message to confirm the payment intent
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
           } else if (status === "requires_confirmation") {
-            console.log("HERE");
             const payment_intent = await stripe_service.confirmPaymentIntent(userPhone);
-            console.log("Payment intent sutatus is: ", payment_intent.status);
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, payment_intent.status, null, "success_message");
           }
         }

@@ -149,11 +149,13 @@ async function increment_total_messages(shop) {
   });
 }
 
-async function increment_messages(shop) {
+async function increment_messages(shop, sent_by, sent_to, message_content) {
   const messageRef = db.collection('Shopify Stores').doc(shop).collection('Messages');
   await messageRef.add({
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    // Add other relevant data if needed
+    sent_by: sent_by,
+    sent_to: sent_to,
+    message_content: message_content,
   });
 }
 
@@ -165,10 +167,11 @@ async function increment_number_of_conversations(shop) {
   });
 }
 
-async function increment_conversations(shop) {
+async function increment_conversations(shop, conversation_with_user) {
   const conversationRef = db.collection('Shopify Stores').doc(shop).collection('Conversations');
   await conversationRef.add({
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    user_phone_number: conversation_with_user,
     // Add other relevant data if needed
   });
 }

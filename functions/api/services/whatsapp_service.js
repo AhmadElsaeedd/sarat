@@ -16,17 +16,11 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
   try {
     // Here use the product image url to send the message to the customer
     const shop = await firebase_service.get_users_conversation(recipientPhone);
-    console.log("SHOP IS: ", shop);
-    console.log("Message type is: ", message_type);
     const messageTemplate = await firebase_service.get_message_template(shop, message_type);
-    console.log("MESSAGE TEMPLATE IS: ", messageTemplate);
-    messageContent = await getMessageContent(message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
-    console.log("Message content is: ", messageContent);
+    messageContent = await getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
     let data;
-    console.log("product image is: ", productImage);
     if (productImage != null) {
       // send a message with a picture of the product
-      console.log("I am trying to send a message with a picture");
       data = {
         messaging_product: 'whatsapp',
         to: recipientPhone,
@@ -37,7 +31,6 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
         },
       };
     } else {
-      console.log("Not sending a message with a picture");
       data = {
         messaging_product: 'whatsapp',
         to: recipientPhone,
@@ -47,7 +40,7 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
       };
     }
     // await firebase_service.increment_total_messages(shop);
-    await firebase_service.increment_messages(shop);
+    await firebase_service.increment_messages(shop, "brand", recipientPhone, messageContent);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
@@ -55,18 +48,18 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
   }
 }
 
-async function getMessageContent(message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop) {
+async function getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop) {
   switch (message_type) {
     case 'abandoned_cart_message':
     {
       // await firebase_service.increment_number_of_conversations(shop);
-      await firebase_service.increment_conversations(shop);
+      await firebase_service.increment_conversations(shop, recipientPhone);
       return create_greeting_message(productName, personName, productSize, messageTemplate);
     }
     case 'refill_message':
     {
       // await firebase_service.increment_number_of_conversations(shop);
-      await firebase_service.increment_conversations(shop);
+      await firebase_service.increment_conversations(shop, recipientPhone);
       return create_refill_message(productName, personName, messageTemplate);
     }
     case 'payment_link_message': {
