@@ -51,7 +51,6 @@ const postSendMessageToMass = async (req, res) => {
 
 const postTexting = async (req, res) => {
   try {
-    console.log(req.body);
     // Required parameters
     const productName = req.body.productName;
     const shopify_productId = req.body.productId;
@@ -71,18 +70,6 @@ const postTexting = async (req, res) => {
     await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
     const access_token = await firebase_service.get_store_access_token(shopDomain);
     const images = await shopify_service.get_product_image(shopDomain, access_token, shopify_productId);
-    // get the product image using product.images[0].src to find the product's image url
-    // pass the product image into the sendMessage function
-    // Call sendIntroMessage
-    // await whatsapp_service.sendIntroMessage(phoneNumber, productName, personName, productSize, shopDomain);
-    // if (messageType === null) {
-    //   // await whatsapp_service.unifiedSendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
-    //   await whatsapp_service.sendMessage(phoneNumber, null, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
-    // } else if (messageType != null && images.length > 0) {
-    //   console.log("I am here 1");
-    //   // await whatsapp_service.unifiedSendMessage(phoneNumber, null, productName, personName, productSize, null, null, null, null, messageType);
-    //   await whatsapp_service.sendMessage(phoneNumber, images[0], productName, personName, productSize, null, null, null, null, messageType);
-    // }
 
     if (!Array.isArray(images) || images.length === 0) {
       console.error("No images available or 'images' is not an array");
