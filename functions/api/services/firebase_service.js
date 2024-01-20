@@ -169,11 +169,15 @@ async function increment_number_of_conversations(shop) {
 
 async function increment_conversations(shop, conversation_with_user) {
   const conversationRef = db.collection('Shopify Stores').doc(shop).collection('Conversations');
-  await conversationRef.add({
-    timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    user_phone_number: conversation_with_user,
-    // Add other relevant data if needed
-  });
+  const conversationDoc = conversationRef.get();
+
+  if (!conversationDoc.exists) {
+    await conversationRef.add({
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      user_phone_number: conversation_with_user,
+      // Add other relevant data if needed
+    });
+  }
 }
 
 async function user_enter_conversation(phoneNumber, shop) {

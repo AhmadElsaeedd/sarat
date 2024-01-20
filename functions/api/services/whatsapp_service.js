@@ -2,7 +2,7 @@ const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBOzgIudZCrptFFafrDhtQkNxES17OlmXzcM7ly7nLEucyI4k71OXLbl2CIYbBFVh9OxIC7FSZCpxdAqM6k0ZAwSnAnaK67EemXLqtEBn1vMhaQzB5f9TtjEMfaqRQ42dgMjsQzvw8RhEP2XEkTY1UWzq4Ko3qht0RH0ZAzC9e2MZB1AiRb2Jb3TNB5OnQp2EEsN26uzPkZD";
+const Whatsapp_Authorization = "EAAMxddllNeIBOw8ud80nFD17Hmcx2SAS9rDZCT0eYvHQ1FIS2NBNnzZCusgZAeTEihSJzkyB3tMHHeDabW98buZAQiVCMxZARumw8GZBnC23pjPVz0bZCD5aUc2elMvuWzru0TJn1B9owimieo65RFSd4f9XA5O3W7fnjz8hImGpU625Of5cHzwxir2OnLRCf3nssCoyEJdRC1SDZCpBooAZD";
 const Whatsapp_URL = "https://graph.facebook.com/v18.0/147069021834152/messages";
 const Whatsapp_headers = {
   'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
