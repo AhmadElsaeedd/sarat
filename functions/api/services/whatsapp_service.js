@@ -2,12 +2,12 @@ const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 const axios = require('axios');
 
-const Whatsapp_Authorization = "EAAMxddllNeIBOw8ud80nFD17Hmcx2SAS9rDZCT0eYvHQ1FIS2NBNnzZCusgZAeTEihSJzkyB3tMHHeDabW98buZAQiVCMxZARumw8GZBnC23pjPVz0bZCD5aUc2elMvuWzru0TJn1B9owimieo65RFSd4f9XA5O3W7fnjz8hImGpU625Of5cHzwxir2OnLRCf3nssCoyEJdRC1SDZCpBooAZD";
-const Whatsapp_URL = "https://graph.facebook.com/v18.0/147069021834152/messages";
-const Whatsapp_headers = {
-  'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
-  'Content-Type': 'application/json',
-};
+// const Whatsapp_Authorization = "EAAMxddllNeIBO3U2WSqY2nSC74rUz0l3ODjY7XEJdv6SenJAqkjzvC8WvRT5yob1eUj8z62oWOjAib7hkhGmoiMtJYTpw2hXIuHKkzDuf7cKrTlDJZCmNxj7cypvCDZAB1nBDaUssm2FMbSTkRZAq7BZASOR0zeZBguxCozgIIc3EZCdScYrZCKcSZCBHAuzNtIaMSkdZCGLgs3W99NpXUe4ZD";
+// const Whatsapp_URL = "https://graph.facebook.com/v18.0/147069021834152/messages";
+// const Whatsapp_headers = {
+//   'Authorization': `Bearer ${Whatsapp_Authorization}`, // Replace with your actual access token
+//   'Content-Type': 'application/json',
+// };
 
 async function sendMessage(recipientPhone, productImage = null, messageContent = null,
     productName = null, personName = null, productSize= null,
@@ -16,6 +16,12 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
   try {
     // Here use the product image url to send the message to the customer
     const shop = await firebase_service.get_users_conversation(recipientPhone);
+    const keys = await firebase_service.get_whatsapp_keys(shop);
+    const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
+    const Whatsapp_headers = {
+      'Authorization': `Bearer ${keys.whatsapp_access_token}`,
+      'Content-Type': 'application/json',
+    };
     const messageTemplate = await firebase_service.get_message_template(shop, message_type);
     messageContent = await getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
     let data;
