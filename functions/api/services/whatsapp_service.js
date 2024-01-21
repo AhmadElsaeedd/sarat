@@ -63,16 +63,20 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
       return create_refill_message(productName, personName, messageTemplate);
     }
     case 'payment_link_message': {
+      await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
       return create_payment_link_message(paymentURL, messageTemplate);
     }
     case 'payment_confirmation_message': {
+      await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
       const payment_details = await stripe_service.get_card_details(payment_method_id);
       return create_confirmation_message(payment_details, messageTemplate);
     }
     case 'success_message': {
+      await firebase_service.update_conversation_status(shop, recipientPhone, "Successful Payment");
       return create_success_message(payment_status, messageTemplate);
     }
     case 'refund_message': {
+      await firebase_service.update_conversation_status(shop, recipientPhone, "Refunded");
       return create_refund_message(refund_status, messageTemplate);
     }
     case 'failed_refund':

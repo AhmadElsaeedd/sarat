@@ -167,16 +167,36 @@ async function increment_number_of_conversations(shop) {
   });
 }
 
-async function increment_conversations(shop, conversation_with_user) {
+async function increment_conversations(shop, phone_number) {
   const conversationRef = db.collection('Shopify Stores').doc(shop).collection('Conversations');
-  const conversationDoc = conversationRef.get();
+  const snapshot = await conversationRef.where('user_phone_number', '==', phone_number).get();
 
-  if (!conversationDoc.exists) {
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    await doc.ref.set({
+      status: "Selling",
+    }, {merge: true});
+  } else {
     await conversationRef.add({
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      user_phone_number: conversation_with_user,
-      // Add other relevant data if needed
+      user_phone_number: phone_number,
+      status: "Selling",
     });
+  }
+}
+
+async function update_conversation_status(shop, phone_number, status) {
+  const conversationRef = db.collection('Shopify Stores').doc(shop).collection('Conversations');
+
+  const snapshot = await conversationRef.where('user_phone_number', '==', phone_number).get();
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    await doc.ref.set({
+      status: status,
+    }, {merge: true});
+  } else {
+    console.log(`No conversation found for phone number: ${phone_number}`);
   }
 }
 
@@ -323,4 +343,4 @@ async function update_message_template(shop, type, content) {
   }
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency};
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status};
