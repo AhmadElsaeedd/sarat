@@ -439,7 +439,7 @@ async function get_customers_with_phone_numbers(shop, access_token, customer_ids
     const user_data = await get_customer_phone_number(shop, access_token, customer_id);
 
     // If the phone number is null, skip this user
-    if (user_data.phone_number === null) {
+    if (!user_data || !user_data.phone_number) {
       continue;
     }
 
