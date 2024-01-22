@@ -26,8 +26,19 @@ async function get_customers_and_line_items(checkouts_array) {
   return customerOrders;
 }
 
+async function get_uncompleted_checkouts(checkouts) {
+  const uncompleted_checkouts = [];
+
+  for (const checkout of checkouts) {
+    if (checkout.completed_at === null) {
+      uncompleted_checkouts.push(checkout);
+    }
+  }
+  return uncompleted_checkouts;
+}
+
 async function get_abandoned_orders(shop, access_token) {
-  const url = `https://${shop}/admin/api/2023-10/checkouts.json`;
+  const url = `https://${shop}/admin/api/2023-10/checkouts.json?limit=250`;
 
   try {
     const response = await axios.get(url, {
@@ -36,7 +47,10 @@ async function get_abandoned_orders(shop, access_token) {
       },
     });
 
-    const customer_orders = await get_customers_and_line_items(response.data.checkouts);
+    // Remove all the checkouts that have been completed
+    const uncompleted_checkouts = await get_uncompleted_checkouts(response.data.checkouts);
+
+    const customer_orders = await get_customers_and_line_items(uncompleted_checkouts);
 
     return customer_orders;
   } catch (error) {
@@ -367,6 +381,8 @@ async function get_customer_phone_number(shop, access_token, customer_id) {
       },
     });
 
+    console.log("This is the customer returned from the get_customer_phone_number function: ", response.data.customer);
+
     if (!response.data.customer.phone && !response.data.customer.addresses[0].phone && !(response.data.customer.default_address && response.data.customer.default_address.phone)) {
       return null;
     }
@@ -431,31 +447,62 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
   return customersWhoNeedRefill;
 }
 
-async function get_customers_with_phone_numbers(shop, access_token, customer_ids) {
-  const customers = [];
+// async function get_customers_with_phone_numbers(shop, access_token, customer_ids) {
+//   const customers = [];
 
-  for (const customer_id of customer_ids) {
-    // get the customer's phone number and name
-    const user_data = await get_customer_phone_number(shop, access_token, customer_id);
+//   for (const customer_id of customer_ids) {
+//     // get the customer's phone number and name
+//     const user_data = await get_customer_phone_number(shop, access_token, customer_id);
 
+//     // If the phone number is null, skip this user
+//     if (!user_data || !user_data.phone_number) {
+//       continue;
+//     }
+
+//     customers.push({
+//       customer_id: customer_id,
+//       customer_phone: user_data.phone_number,
+//       customer_name: user_data.name,
+//     });
+//     await delay(450); // delay for 450 milliseconds
+//   }
+
+//   return customers;
+// }
+
+async function get_customers_with_phone_numbers(customers) {
+  const customers_with_phone_numbers = [];
+
+  for (const customer of customers) {
     // If the phone number is null, skip this user
-    if (!user_data || !user_data.phone_number) {
-      continue;
+    // if (!user_data || !user_data.phone_number) {
+    //   continue;
+    // }
+
+    if (!customer.phone && !customer.addresses[0].phone && !(customer.default_address && customer.default_address.phone)) {
+      return null;
     }
 
-    customers.push({
-      customer_id: customer_id,
-      customer_phone: user_data.phone_number,
-      customer_name: user_data.name,
-    });
-    await delay(450); // delay for 450 milliseconds
-  }
+    const customer_phone_number = customer.phone || customer.addresses[0].phone || customer.default_address.phone;
 
-  return customers;
+    // const data = {
+    //   phone_number: customer_phone_number,
+    //   name: response.data.customer.first_name,
+    // };
+
+    customers_with_phone_numbers.push({
+      customer_id: customer.id,
+      customer_phone: customer_phone_number,
+      customer_name: customer.first_name,
+    });
+    // await delay(450); // delay for 450 milliseconds
+  }
+  return customers_with_phone_numbers;
 }
 
 async function get_customers_for_product_launches(shop, access_token) {
-  const url = `https://${shop}/admin/api/2023-10/customers.json?fields=id,`;
+  // const url = `https://${shop}/admin/api/2023-10/customers.json?fields=id,&limit=250`;
+  const url = `https://${shop}/admin/api/2023-10/customers.json?limit=250`;
 
   try {
     const response = await axios.get(url, {
@@ -464,11 +511,16 @@ async function get_customers_for_product_launches(shop, access_token) {
       },
     });
 
+    console.log("Number of customers returned: ", response.data.customers.length);
+
+    console.log("This is the first customer returned from the get_customers_for_product_launches function: ", response.data.customers[0]);
+
     const customer_ids = await get_customer_ids(response.data.customers);
 
-    console.log("Customer Ids is: ", customer_ids);
+    console.log("Number of customers returned: ", customer_ids.length);
 
-    const customers = await get_customers_with_phone_numbers(shop, access_token, customer_ids);
+    // const customers = await get_customers_with_phone_numbers(shop, access_token, customer_ids);
+    const customers = await get_customers_with_phone_numbers(response.data.customers);
 
     return customers;
   } catch (error) {
