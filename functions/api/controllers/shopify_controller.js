@@ -155,4 +155,20 @@ const postGetProductByID = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand};
+const postShopifyAllCustomers = async (req, res) => {
+  try {
+    // This endpoint will just return all the users that must refill their product
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+
+    // Get all the customers who have a phone number
+    const customers = await shopify_service.get_customers_for_product_launches(shop, access_token);
+
+    res.status(200).send(customers);
+  } catch (error) {
+    console.error("Error in postShopifyAllCustomers:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers};

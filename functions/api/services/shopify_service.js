@@ -120,6 +120,23 @@ async function get_products_for_refill_feature(shop, access_token) {
   }
 }
 
+async function get_products(shop, access_token) {
+  const url = `https://${shop}/admin/api/2023-10/products.json?fields=id,images,title`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    return response.data.products;
+  } catch (error) {
+    console.error('Error fetching abandoned orders:', error);
+    throw error;
+  }
+}
+
 async function fallback_for_update_products_with_refill_field(shop, access_token, product) {
   const product_url = `https://${shop}/admin/api/2023-10/products/${product.product_id}/metafields.json?key=refill_after`;
 
@@ -350,11 +367,11 @@ async function get_customer_phone_number(shop, access_token, customer_id) {
       },
     });
 
-    if (!response.data.customer.phone && !response.data.customer.addresses[0].phone && !(response.data.customer.default_address && response.data.customer.default_address)) {
+    if (!response.data.customer.phone && !response.data.customer.addresses[0].phone && !(response.data.customer.default_address && response.data.customer.default_address.phone)) {
       return null;
     }
 
-    const customer_phone_number = response.data.customer.phone || response.data.customer.addresses[0].phone || response.data.customer.default_address;
+    const customer_phone_number = response.data.customer.phone || response.data.customer.addresses[0].phone || response.data.customer.default_address.phone;
 
     const data = {
       phone_number: customer_phone_number,
@@ -414,4 +431,50 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
   return customersWhoNeedRefill;
 }
 
-module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices};
+async function get_customers_with_phone_numbers(shop, access_token, customer_ids) {
+  const customers = [];
+
+  for (const customer_id of customer_ids) {
+    // get the customer's phone number and name
+    const user_data = await get_customer_phone_number(shop, access_token, customer_id);
+
+    // If the phone number is null, skip this user
+    if (user_data.phone_number === null) {
+      continue;
+    }
+
+    customers.push({
+      customer_id: customer_id,
+      customer_phone: user_data.phone_number,
+      customer_name: user_data.name,
+    });
+    await delay(450); // delay for 450 milliseconds
+  }
+
+  return customers;
+}
+
+async function get_customers_for_product_launches(shop, access_token) {
+  const url = `https://${shop}/admin/api/2023-10/customers.json?fields=id,`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    const customer_ids = await get_customer_ids(response.data.customers);
+
+    console.log("Customer Ids is: ", customer_ids);
+
+    const customers = await get_customers_with_phone_numbers(shop, access_token, customer_ids);
+
+    return customers;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    throw error;
+  }
+}
+
+module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches};
