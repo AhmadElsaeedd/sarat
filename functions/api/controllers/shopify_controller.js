@@ -84,6 +84,20 @@ const postShopifyAbandonedCarts = async (req, res) => {
   }
 };
 
+const postShopifyAbandonedCartsFirstReminder = async (req, res) => {
+  try {
+    // This endpoint will just return all the users with abandoned carts
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+    const abandoned_carts = await shopify_service.get_abandoned_orders_first_reminder(shop, access_token);
+
+    res.status(200).send(abandoned_carts);
+  } catch (error) {
+    console.error("Error in postShopifyAbandonedCartsFirstReminder:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
 const postShopifyRefillCustomers = async (req, res) => {
   try {
     // This endpoint will just return all the users that must refill their product
@@ -171,4 +185,4 @@ const postShopifyAllCustomers = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers};
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder};

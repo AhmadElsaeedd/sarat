@@ -13,6 +13,7 @@ async function get_customers_and_line_items(checkouts_array) {
       // Throwing null if a said field doesn't exist
       const orderInfo = {
         customer_name: checkout.customer ? checkout.customer.first_name : null,
+        customer_id: checkout.customer ? checkout.customer.id : null,
         // Assigning the first found phone to customer_phone
         customer_phone: checkout.phone || (checkout.customer && checkout.customer.phone) || checkout.sms_marketing_phone || (checkout.shipping_address && checkout.shipping_address.phone),
         product_id: checkout.line_items && checkout.line_items[0] ? checkout.line_items[0].product_id : null,
@@ -26,11 +27,39 @@ async function get_customers_and_line_items(checkouts_array) {
   return customerOrders;
 }
 
+async function get_uncompleted_and_first_hour_checkouts(checkouts) {
+  const uncompleted_checkouts = [];
+
+  for (const checkout of checkouts) {
+    // Parse the created_at date string into a Date object
+    const createdAt = new Date(checkout.created_at);
+
+    // Get the current date and time in UTC
+    const now = new Date();
+    const nowUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
+
+    // Convert the created_at date to UTC
+    const createdAtUtc = Date.UTC(createdAt.getUTCFullYear(), createdAt.getUTCMonth(), createdAt.getUTCDate(), createdAt.getUTCHours(), createdAt.getUTCMinutes(), createdAt.getUTCSeconds());
+
+    // Calculate the difference in milliseconds
+    const diff = nowUtc - createdAtUtc;
+
+    // Convert the difference to hours
+    const diffInHours = diff / 1000 / 60 / 60;
+
+    if (checkout.completed_at === null && (diffInHours > 1 && diffInHours < 4) ) {
+      // If more than 1 hour and less than 4 hours has passed AND the checkout hasn't been completed, push the checkout into the array
+      uncompleted_checkouts.push(checkout);
+    }
+  }
+  return uncompleted_checkouts;
+}
+
 async function get_uncompleted_checkouts(checkouts) {
   const uncompleted_checkouts = [];
 
   for (const checkout of checkouts) {
-    if (checkout.completed_at === null) {
+    if (checkout.completed_at === null ) {
       uncompleted_checkouts.push(checkout);
     }
   }
@@ -49,6 +78,28 @@ async function get_abandoned_orders(shop, access_token) {
 
     // Remove all the checkouts that have been completed
     const uncompleted_checkouts = await get_uncompleted_checkouts(response.data.checkouts);
+
+    const customer_orders = await get_customers_and_line_items(uncompleted_checkouts);
+
+    return customer_orders;
+  } catch (error) {
+    console.error('Error fetching abandoned orders:', error);
+    throw error;
+  }
+}
+
+async function get_abandoned_orders_first_reminder(shop, access_token) {
+  const url = `https://${shop}/admin/api/2023-10/checkouts.json?limit=250`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    // Remove all the checkouts that have been completed
+    const uncompleted_checkouts = await get_uncompleted_and_first_hour_checkouts(response.data.checkouts);
 
     const customer_orders = await get_customers_and_line_items(uncompleted_checkouts);
 
@@ -529,4 +580,4 @@ async function get_customers_for_product_launches(shop, access_token) {
   }
 }
 
-module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches};
+module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder};
