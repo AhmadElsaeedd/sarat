@@ -86,8 +86,15 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
     // Assign each checkout to a cohort and get all the needed details with also first reminder/second reminder
     const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_uncompleted_checkouts, cohorts);
 
+    // Get the data that we need from the above array
+    // We need: shopify_productNames (array), shopify_productIds (array), phoneNumber, customer name
+    const structured_data = await cohort_service.structure_data_for_messaging(abandoned_checkouts_with_cohorts);
+
+    // Based on each customer's cohort and the time that they're in, send them the message that they should receive
+    const message_sent = await cohort_service.send_messages(access_token, shop, structured_data);
+
     // I don't think we should return anything here, we could just return success
-    res.status(200).send(abandoned_checkouts_with_cohorts);
+    res.status(200).send(message_sent);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCarts:", error);
     res.status(500).send('Internal Server Error');

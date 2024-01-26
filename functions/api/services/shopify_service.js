@@ -59,7 +59,7 @@ async function get_uncompleted_checkouts(checkouts) {
   const uncompleted_checkouts = [];
 
   for (const checkout of checkouts) {
-    if (checkout.completed_at === null && checkout.line_items.length > 0) {
+    if (checkout.completed_at === null && checkout.line_items.length > 0 && checkout.buyer_accepts_marketing === true) {
       uncompleted_checkouts.push(checkout);
     }
   }
@@ -432,8 +432,6 @@ async function get_customer_phone_number(shop, access_token, customer_id) {
       },
     });
 
-    console.log("This is the customer returned from the get_customer_phone_number function: ", response.data.customer);
-
     if (!response.data.customer.phone && !response.data.customer.addresses[0].phone && !(response.data.customer.default_address && response.data.customer.default_address.phone)) {
       return null;
     }
@@ -498,55 +496,21 @@ async function get_customers_who_need_refill(shop, access_token, products, custo
   return customersWhoNeedRefill;
 }
 
-// async function get_customers_with_phone_numbers(shop, access_token, customer_ids) {
-//   const customers = [];
-
-//   for (const customer_id of customer_ids) {
-//     // get the customer's phone number and name
-//     const user_data = await get_customer_phone_number(shop, access_token, customer_id);
-
-//     // If the phone number is null, skip this user
-//     if (!user_data || !user_data.phone_number) {
-//       continue;
-//     }
-
-//     customers.push({
-//       customer_id: customer_id,
-//       customer_phone: user_data.phone_number,
-//       customer_name: user_data.name,
-//     });
-//     await delay(450); // delay for 450 milliseconds
-//   }
-
-//   return customers;
-// }
-
 async function get_customers_with_phone_numbers(customers) {
   const customers_with_phone_numbers = [];
 
   for (const customer of customers) {
-    // If the phone number is null, skip this user
-    // if (!user_data || !user_data.phone_number) {
-    //   continue;
-    // }
-
     if (!customer.phone && !customer.addresses[0].phone && !(customer.default_address && customer.default_address.phone)) {
       return null;
     }
 
     const customer_phone_number = customer.phone || customer.addresses[0].phone || customer.default_address.phone;
 
-    // const data = {
-    //   phone_number: customer_phone_number,
-    //   name: response.data.customer.first_name,
-    // };
-
     customers_with_phone_numbers.push({
       customer_id: customer.id,
       customer_phone: customer_phone_number,
       customer_name: customer.first_name,
     });
-    // await delay(450); // delay for 450 milliseconds
   }
   return customers_with_phone_numbers;
 }
@@ -562,15 +526,6 @@ async function get_customers_for_product_launches(shop, access_token) {
       },
     });
 
-    console.log("Number of customers returned: ", response.data.customers.length);
-
-    console.log("This is the first customer returned from the get_customers_for_product_launches function: ", response.data.customers[0]);
-
-    const customer_ids = await get_customer_ids(response.data.customers);
-
-    console.log("Number of customers returned: ", customer_ids.length);
-
-    // const customers = await get_customers_with_phone_numbers(shop, access_token, customer_ids);
     const customers = await get_customers_with_phone_numbers(response.data.customers);
 
     return customers;
