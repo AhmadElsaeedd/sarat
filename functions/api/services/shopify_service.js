@@ -59,7 +59,7 @@ async function get_uncompleted_checkouts(checkouts) {
   const uncompleted_checkouts = [];
 
   for (const checkout of checkouts) {
-    if (checkout.completed_at === null ) {
+    if (checkout.completed_at === null && checkout.line_items.length > 0) {
       uncompleted_checkouts.push(checkout);
     }
   }
@@ -79,9 +79,9 @@ async function get_abandoned_orders(shop, access_token) {
     // Remove all the checkouts that have been completed
     const uncompleted_checkouts = await get_uncompleted_checkouts(response.data.checkouts);
 
-    const customer_orders = await get_customers_and_line_items(uncompleted_checkouts);
+    // const customer_orders = await get_customers_and_line_items(uncompleted_checkouts);
 
-    return customer_orders;
+    return uncompleted_checkouts;
   } catch (error) {
     console.error('Error fetching abandoned orders:', error);
     throw error;

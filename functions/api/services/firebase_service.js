@@ -123,7 +123,9 @@ async function save_store_access_token(shop, access_token) {
 
   const firstCohortDocument = {
     cart_value: [100, 300],
-    cohort_name: "Pre-defined 1",
+    cohort_id: "Pre-defined 1",
+    cohort_type: "Pre-defined",
+    cohort_number: 1,
     date_created: admin.firestore.FieldValue.serverTimestamp(),
     discount_amount_in_first: 0,
     discount_amount_in_second: 10,
@@ -133,7 +135,7 @@ async function save_store_access_token(shop, access_token) {
     discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
     first_reminder_active: true,
     first_reminder_time: 1,
-    items_in_cart: false,
+    items_in_cart: [0, 10],
     message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
     message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
     message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
@@ -148,7 +150,9 @@ async function save_store_access_token(shop, access_token) {
   // Define the contents of the second document
   const secondCohortDocument = {
     cart_value: [300, 0],
-    cohort_name: "Pre-defined 2",
+    cohort_id: "Pre-defined 2",
+    cohort_type: "Pre-defined",
+    cohort_number: 2,
     date_created: admin.firestore.FieldValue.serverTimestamp(),
     discount_amount_in_first: 0,
     discount_amount_in_second: 15,
@@ -158,7 +162,7 @@ async function save_store_access_token(shop, access_token) {
     discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
     first_reminder_active: true,
     first_reminder_time: 2,
-    items_in_cart: false,
+    items_in_cart: [0, 10],
     message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
     message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
     message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
@@ -171,10 +175,10 @@ async function save_store_access_token(shop, access_token) {
   };
 
   // Add the first cohort document to the subcollection
-  await stores_ref.collection('Cohorts').add(firstCohortDocument);
+  await stores_ref.collection('Cohorts').doc("Pre-defined 1").set(firstCohortDocument);
 
   // Add the second cohort document to the subcollection
-  await stores_ref.collection('Cohorts').add(secondCohortDocument);
+  await stores_ref.collection('Cohorts').doc("Pre-defined 2").set(secondCohortDocument);
 }
 
 async function get_store_access_token(shop) {
@@ -408,4 +412,11 @@ async function get_whatsapp_keys(shop) {
   } else return null;
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys};
+async function get_cohorts(shop) {
+  const cohorts_query = db.collection('Shopify Stores').doc(shop).collection("Cohorts");
+  const cohortsSnapshot = await cohorts_query.get();
+
+  return cohortsSnapshot.docs.map((doc) => doc.data());
+}
+
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts};

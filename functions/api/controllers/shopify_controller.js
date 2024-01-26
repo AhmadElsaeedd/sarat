@@ -2,6 +2,7 @@ const axios = require('axios');
 const firebase_service = require('../services/firebase_service');
 const shopify_service = require('../services/shopify_service');
 const stripe_service = require('../services/stripe_service');
+const cohort_service = require('../services/cohort_service');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
 const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products';
@@ -66,6 +67,29 @@ const postShopifyOnboardBrand = async (req, res) => {
     res.status(200).send(products);
   } catch (error) {
     console.error("Error in postShopifyOnboardBrand:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postShopifyAbandonedCartsFlow = async (req, res) => {
+  try {
+    // This endpoint will send messages to all customers who left an abandoned cart based on what cohort they fall in
+    const shop = req.body.shop;
+    const access_token = await firebase_service.get_store_access_token(shop);
+
+    // Gets all abandoned checkouts that haven't been completed
+    const abandoned_uncompleted_checkouts = await shopify_service.get_abandoned_orders(shop, access_token);
+
+    // Get all the cohorts in the brand
+    const cohorts = await firebase_service.get_cohorts(shop);
+
+    // Assign each checkout to a cohort and get all the needed details with also first reminder/second reminder
+    const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_uncompleted_checkouts, cohorts);
+
+    // I don't think we should return anything here, we could just return success
+    res.status(200).send(abandoned_checkouts_with_cohorts);
+  } catch (error) {
+    console.error("Error in postShopifyAbandonedCarts:", error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -185,4 +209,4 @@ const postShopifyAllCustomers = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder};
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow};
