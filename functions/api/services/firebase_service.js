@@ -106,14 +106,13 @@ async function save_store_access_token(shop, access_token) {
   const stores_ref =db.collection('Shopify Stores').doc(shop);
 
   // Generate a 4 character invitation code using lowercase characters and numbers
-  const invitation_code = (Math.random().toString(36)+'0000').substring(2, 6);
+  const invitation_code = (Math.random().toString(36)+'000000').substring(2, 8);
 
   await stores_ref.set({
     currency: "usd",
     invitation_code: invitation_code,
     shopify_access_token: access_token,
     shop: shop,
-    abandoned_cart_message: "Hey {personName}, would you like to buy {productName} for a discount? Text 'Yes', and we'll send you a link with the discount code preloaded!",
     restock_message: "Hey {personName}, {productName} you loved is back! Text 'Yes' to claim yours!",
     refill_message: "Hey {personName}, would you like to buy {productName} again? Text 'Yes' to claim yours!",
     payment_link_message: "Awesome! go here to complete your payment {paymentURL}!",
@@ -121,6 +120,61 @@ async function save_store_access_token(shop, access_token) {
     success_message: "{payment_status}! Text us 'Cancel' to cancel, only in the next 24 hours.",
     refund_message: "{refund_status}. Your payment has been canceled and the amount will be refunded to your card.",
   }, {merge: true});
+
+  const firstCohortDocument = {
+    cart_value: [100, 300],
+    cohort_name: "Pre-defined 1",
+    date_created: admin.firestore.FieldValue.serverTimestamp(),
+    discount_amount_in_first: 0,
+    discount_amount_in_second: 10,
+    discount_in_first: false,
+    discount_in_second: true,
+    discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+    discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+    first_reminder_active: true,
+    first_reminder_time: 1,
+    items_in_cart: false,
+    message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
+    message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
+    message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+    message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+    product_list1: "{productName} for {productPrice}",
+    product_list2: "{productName} for {productPrice}",
+    purchase_frequency: ["first_time", "returning"],
+    second_reminder_active: true,
+    second_reminder_time: 6,
+  };
+
+  // Define the contents of the second document
+  const secondCohortDocument = {
+    cart_value: [300, 0],
+    cohort_name: "Pre-defined 2",
+    date_created: admin.firestore.FieldValue.serverTimestamp(),
+    discount_amount_in_first: 0,
+    discount_amount_in_second: 15,
+    discount_in_first: false,
+    discount_in_second: true,
+    discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+    discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+    first_reminder_active: true,
+    first_reminder_time: 2,
+    items_in_cart: false,
+    message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
+    message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
+    message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+    message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+    product_list1: "{productName} for {productPrice}",
+    product_list2: "{productName} for {productPrice}",
+    purchase_frequency: ["first_time"],
+    second_reminder_active: true,
+    second_reminder_time: 8,
+  };
+
+  // Add the first cohort document to the subcollection
+  await stores_ref.collection('Cohorts').add(firstCohortDocument);
+
+  // Add the second cohort document to the subcollection
+  await stores_ref.collection('Cohorts').add(secondCohortDocument);
 }
 
 async function get_store_access_token(shop) {
