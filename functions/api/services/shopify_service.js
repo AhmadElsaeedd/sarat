@@ -370,6 +370,34 @@ async function get_product_image(shop, access_token, product_id) {
   }
 }
 
+async function get_product_images(shop, access_token, productList) {
+  try {
+    const productsWithImages = [];
+
+    for (const product of productList) {
+      const url = `https://${shop}/admin/api/2023-10/products/${product.product_id}.json`;
+
+      const response = await axios.get(url, {
+        headers: {
+          'X-Shopify-Access-Token': access_token,
+        },
+      });
+
+      const images = response.data.product.images;
+      const supportedImages = await filterSupportedImages(images);
+
+      // Add the images to the product object and add it to the array
+      product.images = supportedImages.map((image) => image.src);
+      productsWithImages.push(product);
+    }
+
+    return productsWithImages;
+  } catch (error) {
+    console.error('Error fetching product images:', error);
+    throw error;
+  }
+}
+
 async function get_customer_ids(customers) {
   return customers.map((customer) => customer.id);
 }
@@ -535,4 +563,4 @@ async function get_customers_for_product_launches(shop, access_token) {
   }
 }
 
-module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder};
+module.exports = {get_abandoned_orders, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};

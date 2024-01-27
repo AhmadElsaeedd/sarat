@@ -34,12 +34,11 @@ async function get_product_id(userPhone) {
 }
 
 
-async function update_current_product(phoneNumber, stripe_productId, shopify_productId) {
+async function update_current_product(phoneNumber, product_list) {
   const user_ref = db.collection('Customers').doc(phoneNumber);
   // Update the document
   await user_ref.set({
-    current_stripe_product_id: stripe_productId,
-    current_shopify_product_id: shopify_productId,
+    current_product_list: product_list,
     phone_number: phoneNumber,
   }, {merge: true});
 }
@@ -258,11 +257,13 @@ async function update_conversation_status(shop, phone_number, status) {
   }
 }
 
-async function user_enter_conversation(phoneNumber, shop) {
+async function start_conversation(phoneNumber, shop, product_list) {
   const user_ref = db.collection('Customers').doc(phoneNumber);
 
   await user_ref.set({
-    in_conversation: shop,
+    current_product_list: product_list,
+    phone_number: phoneNumber,
+    in_conversation_with: shop,
   }, {merge: true});
 }
 
@@ -419,4 +420,4 @@ async function get_cohorts(shop) {
   return cohortsSnapshot.docs.map((doc) => doc.data());
 }
 
-module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, user_enter_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts};
+module.exports = {get_product_id, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts};

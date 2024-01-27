@@ -1,4 +1,4 @@
-// const axios = require('axios');
+const axios = require('axios');
 
 async function get_customers_and_line_items(checkouts_array) {
   const structured_customers = [];
@@ -75,19 +75,52 @@ function determineCohort(checkout, cohorts) {
 }
 
 async function send_messages(access_token, shop, structured_data) {
-//   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
+  const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
+  const structured_data2 = [{
+    customer_name: "Ahmad", // Replace with your name
+    customer_phone: "201200025500", // Replace with your phone number
+    checkout_started_at: "2023-11-24T15:03:36+02:00",
+    cohort: {
+      cohort_id: "Pre-defined 1",
+      cohort_number: 1,
+      cohort_type: "Pre-defined",
+      discount_amount_in_second: 10,
+      discount_in_second: true,
+      discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+      discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+      first_reminder_active: true,
+      first_reminder_time: 1,
+      items_in_cart: [0, 10],
+      message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
+      message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+      product_list1: "{productName} for {productPrice}",
+      purchase_frequency: ["first_time", "returning"],
+      second_reminder_active: true,
+      second_reminder_time: 6,
+    },
+    product_list: [{
+      product_id: 8789787246890,
+      product_name: "Chanel Gray Joggers Straight / Cuffed Fit",
+      variant_title: "M",
+    }, {
+      product_id: 8839346061610,
+      product_name: "Blossom Grey washed hoodie ( Pink Accent )",
+      variant_title: "Medium",
+    },
+    ],
+  }];
   const body = {
-    selectedPeople: structured_data,
+    selectedPeople: structured_data2,
     shop: shop,
 
   };
-  //   const response = await axios.post(url, body, {
-  //     headers: {
-  //       'X-Shopify-Access-Token': access_token,
-  //     },
-  //   });
+  const response = await axios.post(url, body, {
+    headers: {
+      'X-Shopify-Access-Token': access_token,
+    },
+  });
   // do this request from the terminal with 1 customer and test with it!
-  return body;
+  return response;
 }
 
 module.exports = {get_customers_with_cohorts, structure_data_for_messaging, send_messages};

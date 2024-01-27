@@ -16,6 +16,38 @@ async function get_product_id(productName) {
   return productId;
 }
 
+async function get_product_ids(product_list) {
+  try {
+    const productsWithIds = [];
+
+    for (const product of product_list) {
+      const nameQuery = `name:'${product.product_name.replace(/'/g, "\\'")}'`;
+      const idQuery = `metadata['shopify_product_id']:'${product.product_id}'`;
+      const searchQuery = `${nameQuery} AND ${idQuery}`;
+
+      // Use the Stripe API's search endpoint with the constructed query for each product
+      const products = await stripe.products.search({
+        query: searchQuery,
+      });
+
+      // If a product is found, add its ID to the product object and add it to the array
+      if (products.data.length > 0) {
+        product.stripe_product_id = products.data[0].id;
+        productsWithIds.push(product);
+      } else {
+        // Handle the case where a product is not found
+        console.error(`Product not found: ${product.product_name}`);
+        // Depending on your use case, you might want to throw an error or just continue
+      }
+    }
+
+    return productsWithIds;
+  } catch (error) {
+    console.error("Error in get_product_ids:", error);
+    throw error; // Rethrow the error to handle it in the calling function
+  }
+}
+
 
 async function create_customer(email, phone_number, payment_method) {
   const customer = await stripe.customers.create({
@@ -212,4 +244,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice};
+module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
