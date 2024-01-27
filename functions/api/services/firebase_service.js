@@ -126,8 +126,8 @@ async function save_store_access_token(shop, access_token) {
     cohort_type: "Pre-defined",
     cohort_number: 1,
     date_created: admin.firestore.FieldValue.serverTimestamp(),
-    discount_amount_in_first: 0,
-    discount_amount_in_second: 10,
+    discount_amount_in_1: 0,
+    discount_amount_in_2: 10,
     discount_in_first: false,
     discount_in_second: true,
     discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
@@ -314,7 +314,7 @@ async function get_users_conversation(userPhone) {
   const user_doc = await db.collection('Customers').doc(userPhone).get();
   const user_data = user_doc.data();
   if (user_doc.exists) {
-    return user_data.in_conversation;
+    return user_data.in_conversation_with;
   } else return null;
 }
 

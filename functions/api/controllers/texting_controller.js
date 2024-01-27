@@ -18,24 +18,14 @@ const postSendMessageToMass = async (req, res) => {
       const personName = selected_people[i].customer_name;
       const phoneNumber = selected_people[i].customer_phone;
       const checkoutStartedAt = selected_people[i].checkout_started_at;
+      const cohort = selected_people[i].cohort;
 
       const productListWithStripeIds = await stripe_service.get_product_ids(productList);
       const access_token = await firebase_service.get_store_access_token(shopDomain);
       const productsListWithImages = await shopify_service.get_product_images(shopDomain, access_token, productListWithStripeIds);
       // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
       await firebase_service.start_conversation(phoneNumber, shopDomain, productsListWithImages);
-      await whatsapp_service.sendMessageToCohortCustomer(shopDomain, phoneNumber, personName, selected_people[i].cohort, productsListWithImages, checkoutStartedAt);
-      // if (!Array.isArray(images) || images.length === 0) {
-      //   console.error("No images available or 'images' is not an array");
-      // } else {
-      //   // Proceed with the rest of the code
-      //   if (messageType === null) {
-      //     await whatsapp_service.sendMessage(phoneNumber, null, null, productName, personName, productSize, null, null, null, null, "abandoned_cart_message");
-      //   } else if (messageType != null) {
-      //     console.log("Message type is: ", messageType);
-      //     await whatsapp_service.sendMessage(phoneNumber, images[0], null, productName, personName, productSize, null, null, null, null, messageType);
-      //   }
-      // }
+      await whatsapp_service.sendMessageToCohortCustomer(shopDomain, phoneNumber, personName, cohort, productsListWithImages, checkoutStartedAt);
       await delay(500);
     }
 

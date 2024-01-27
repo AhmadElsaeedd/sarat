@@ -25,20 +25,21 @@ function first_or_second_reminder(cohort, last_text, checkout_started_at) {
 }
 
 function construct_message(cohort, reminder, personName, product_list) {
-  console.log("cohort is: ", cohort);
-  console.log("reminder is: ", reminder);
-  let message = cohort[`message_opener${reminder}`] + '\n';
+  console.log("3 Cohort is: ", cohort);
+  console.log("Reminder is: ", reminder);
+  console.log("Message opener is: ", cohort[`message_opener${reminder}`]);
+  let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
 
   console.log("Message after opener is: ", message);
 
   // Construct the product list string
-  const productListString = product_list.map((product) =>
-    cohort[`product_list${reminder}`]
+  const productListString = product_list.map((product, index) =>
+    `${index + 1}. ` + cohort[`product_list${reminder}`]
         .replace('{productName}', product.product_name)
         .replace('{variantTitle}', product.variant_title),
-  ).join(', ');
+  ).join('\n');
 
-  message += productListString + '\n';
+  message += productListString + '\n'+ '\n';
 
   console.log("Message after product list is: ", message);
 
@@ -46,13 +47,13 @@ function construct_message(cohort, reminder, personName, product_list) {
   if ((reminder === 1 && cohort.discount_in_first) || (reminder === 2 && cohort.discount_in_second)) {
     const discountMessage = cohort[`discount_message${reminder}`]
         .replace('{discountAmount}', cohort[`discount_amount_in_${reminder}`]);
-    message += discountMessage + '\n';
+    message += discountMessage + '\n'+ '\n';
   }
 
   console.log("Message after discount is: ", message);
 
   // Add closing message
-  message += cohort[`message_close${reminder}`] + '\n';
+  message += cohort[`message_close${reminder}`];
 
   console.log("Message after close: ", message);
 
@@ -66,16 +67,16 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
   try {
   // Here use the product image url to send the message to the customer
     // const shop = await firebase_service.get_users_conversation(recipientPhone);
-    // const keys = await firebase_service.get_whatsapp_keys(shop);
+    const keys = await firebase_service.get_whatsapp_keys(shop);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
     const reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     const message = construct_message(cohort, reminder, personName, product_list);
     console.log("Message to be sent is: ", message);
-    // const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
-    // const Whatsapp_headers = {
-    //   'Authorization': `Bearer ${keys.whatsapp_access_token}`,
-    //   'Content-Type': 'application/json',
-    // };
+    const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
+    const Whatsapp_headers = {
+      'Authorization': `Bearer ${keys.whatsapp_access_token}`,
+      'Content-Type': 'application/json',
+    };
     // const messageTemplate = await firebase_service.get_message_template(shop, message_type);
     // messageContent = await getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
     // let data;
@@ -99,10 +100,19 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     //     },
     //   };
     // }
-    // // await firebase_service.increment_total_messages(shop);
-    // await firebase_service.increment_messages(shop, "You", recipientPhone, messageContent);
-    // const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
-    // console.log("Message sent successfully:", response.data);
+    const data = {
+      messaging_product: 'whatsapp',
+      to: recipientPhone,
+      type: 'image',
+      image: {
+        link: product_list[0].images[0],
+        caption: message,
+      },
+    };
+    await firebase_service.increment_conversations(shop, recipientPhone);
+    await firebase_service.increment_messages(shop, "You", recipientPhone, message);
+    const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
+    console.log("Message sent successfully:", response.data);
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
