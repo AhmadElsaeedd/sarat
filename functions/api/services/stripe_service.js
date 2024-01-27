@@ -65,11 +65,11 @@ async function create_customer(email, phone_number, payment_method) {
   return customer;
 }
 
-async function get_price_object(product_id) {
-  // ToDo: get the price id of the product id
-  const prices = await stripe.prices.list({product: product_id});
-  return prices.data[0];
-}
+// async function get_price_object(product_id) {
+//   // ToDo: get the price id of the product id
+//   const prices = await stripe.prices.list({product: product_id});
+//   return prices.data[0];
+// }
 
 async function get_price_objects(product_ids) {
   const priceObjects = [];
@@ -94,18 +94,50 @@ async function get_card_details(payment_method_id) {
   return paymentMethod;
 }
 
-async function generatePaymentLink(phoneNumber, product_id) {
+// async function generatePaymentLink(phoneNumber, product_id) {
+//   try {
+//     const price = await get_price_object(product_id);
+//     const price_id = price.id;
+//     // ToDo: generate a payment link using the price_id of the product
+//     const paymentLink = await stripe.paymentLinks.create({
+//       line_items: [
+//         {
+//           price: price_id,
+//           quantity: 1,
+//         },
+//       ],
+//       metadata: {
+//         phone: phoneNumber,
+//       },
+//       customer_creation: 'always',
+//     });
+//     return paymentLink;
+//   } catch (error) {
+//     console.error("Error generating link:", error.response ? error.response.data : error.message);
+//   }
+// }
+
+async function generatePaymentLink(phoneNumber, product_ids) {
   try {
-    const price = await get_price_object(product_id);
-    const price_id = price.id;
+    // const price = await get_price_object(product_id);
+    const prices = await get_price_objects(product_ids);
+    const data = [];
+    for (const price of prices) {
+      data.push({
+        price: price.id,
+        quantity: 1,
+      });
+    }
+    // const price_id = price.id;
     // ToDo: generate a payment link using the price_id of the product
     const paymentLink = await stripe.paymentLinks.create({
-      line_items: [
-        {
-          price: price_id,
-          quantity: 1,
-        },
-      ],
+      // line_items: [
+      //   {
+      //     price: price_id,
+      //     quantity: 1,
+      //   },
+      // ],
+      line_items: data,
       metadata: {
         phone: phoneNumber,
       },
@@ -143,10 +175,15 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids) {
   try {
     // const price = await get_price_object(product_id);
     // const price_amount = price.unit_amount;
+    const shop = await firebase_service.get_users_conversation(phoneNumber);
+    const currency = await firebase_service.get_store_currency(shop);
     const prices = await get_price_objects(stripe_product_ids);
-    let price_amount;
+    console.log("Prices: ", prices);
+    let price_amount = 0;
     for (const price of prices) {
+      console.log("Here and price amount: ", price_amount);
       price_amount += price.unit_amount;
+      console.log("Price amount: ", price_amount);
     }
     const user = await firebase_service.get_customer_data(phoneNumber);
     const customer_id = user.customer_id;
@@ -155,7 +192,7 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids) {
     // ToDo: generate a payment intent using the amount of the product
     const paymentIntent = await stripe.paymentIntents.create({
       amount: price_amount,
-      currency: 'usd',
+      currency: currency.toLowerCase(),
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: 'never',

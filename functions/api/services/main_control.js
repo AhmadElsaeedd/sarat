@@ -32,9 +32,11 @@ async function main_control(userPhone, message) {
         if (!returning_user) {
         // First time user
         // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
-          const checkout_session = await stripe_service.generateCheckoutSession(userPhone);
+          // const checkout_session = await stripe_service.generateCheckoutSession(userPhone);
+          const payment_link = await stripe_service.generatePaymentLink(userPhone, stripe_product_ids);
           // ToDo: pass this payment link to the whatsapp service with the phone number of the user
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
+          // await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
+          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, payment_link.url, null, null, null, "payment_link_message");
         } else {
         // Returning user
           const status = await firebase_service.get_status(userPhone);
@@ -94,9 +96,11 @@ async function handlePurchase(session) {
   const user_phone = session.metadata.phone;
   const customer = await stripe_service.create_customer(user_email, user_phone, payment_method);
   await firebase_service.store_data(customer, user_phone, payment_method);
-  const product_id = await firebase_service.get_product_id(user_phone);
+  // const product_id = await firebase_service.get_product_ids(user_phone);
+  const stripe_product_ids = await firebase_service.get_product_ids(user_phone);
   // create a confirmed payment intent to charge the customer
-  await stripe_service.generatePaymentIntent(user_phone, product_id);
+  // await stripe_service.generatePaymentIntent(user_phone, product_id);
+  await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids);
   await stripe_service.confirmPaymentIntent(user_phone);
 }
 
