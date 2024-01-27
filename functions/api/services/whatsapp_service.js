@@ -2,31 +2,75 @@ const stripe_service = require('../services/stripe_service');
 const firebase_service = require('../services/firebase_service');
 const axios = require('axios');
 
-function first_or_second_reminder(cohort, last_text) {
+function first_or_second_reminder(cohort, last_text, checkout_started_at) {
   // Parse the created_at date string into a Date object
-  const lastTexted = new Date(last_text.timestamp);
+  const checkoutStartedAt = new Date(checkout_started_at);
+  // const lastTexted = new Date(last_text.timestamp);
+  const lastTexted = last_text.timestamp.toDate();
   const now = new Date();
-  const diffInMilliseconds = now - lastTexted;
+  const diffInMillisecondsBtwLastTimeTexted = now - lastTexted;
+  const diffInMillisecondsBtwCheckoutStart = now - checkoutStartedAt;
   // Convert the difference to hours
-  const diffInHours = diffInMilliseconds / 1000 / 60 / 60;
+  const diffInHoursBtwLastTimeTexted = diffInMillisecondsBtwLastTimeTexted / 1000 / 60 / 60;
+  const diffInHoursBtwCheckoutStart = diffInMillisecondsBtwCheckoutStart / 1000 / 60 / 60;
 
-  if (cohort.second_reminder_active && diffInHours > cohort.second_reminder_time) {
-    return "second";
-  } else if (cohort.first_reminder_active && diffInHours > cohort.first_reminder_time) {
-    return "first";
+
+  if (cohort.second_reminder_active && diffInHoursBtwLastTimeTexted > 24 && diffInHoursBtwCheckoutStart > cohort.second_reminder_time) {
+    return "2";
+  } else if (cohort.first_reminder_active && diffInHoursBtwLastTimeTexted > 24 && diffInHoursBtwCheckoutStart > cohort.first_reminder_time) {
+    return "1";
   }
 
   return null;
 }
 
-async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list) {
+function construct_message(cohort, reminder, personName, product_list) {
+  console.log("cohort is: ", cohort);
+  console.log("reminder is: ", reminder);
+  let message = cohort[`message_opener${reminder}`] + '\n';
+
+  console.log("Message after opener is: ", message);
+
+  // Construct the product list string
+  const productListString = product_list.map((product) =>
+    cohort[`product_list${reminder}`]
+        .replace('{productName}', product.product_name)
+        .replace('{variantTitle}', product.variant_title),
+  ).join(', ');
+
+  message += productListString + '\n';
+
+  console.log("Message after product list is: ", message);
+
+  // Add discount message if applicable
+  if ((reminder === 1 && cohort.discount_in_first) || (reminder === 2 && cohort.discount_in_second)) {
+    const discountMessage = cohort[`discount_message${reminder}`]
+        .replace('{discountAmount}', cohort[`discount_amount_in_${reminder}`]);
+    message += discountMessage + '\n';
+  }
+
+  console.log("Message after discount is: ", message);
+
+  // Add closing message
+  message += cohort[`message_close${reminder}`] + '\n';
+
+  console.log("Message after close: ", message);
+
+  // Replace personName placeholder
+  message = message.replace('{personName}', personName);
+
+  return message;
+}
+
+async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt) {
   try {
   // Here use the product image url to send the message to the customer
     // const shop = await firebase_service.get_users_conversation(recipientPhone);
     // const keys = await firebase_service.get_whatsapp_keys(shop);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
-    const reminder = first_or_second_reminder(cohort, last_text_to_customer);
-    console.log("Which reminder to send? ", reminder);
+    const reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
+    const message = construct_message(cohort, reminder, personName, product_list);
+    console.log("Message to be sent is: ", message);
     // const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     // const Whatsapp_headers = {
     //   'Authorization': `Bearer ${keys.whatsapp_access_token}`,
