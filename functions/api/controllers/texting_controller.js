@@ -15,7 +15,7 @@ const postSendMessageToMass = async (req, res) => {
 
     for (let i = 0; i < length; i++) {
       const productList = selected_people[i].product_list;
-      // const personName = selected_people[i].customer_name;
+      const personName = selected_people[i].customer_name;
       const phoneNumber = selected_people[i].customer_phone;
 
       const productListWithStripeIds = await stripe_service.get_product_ids(productList);
@@ -23,8 +23,7 @@ const postSendMessageToMass = async (req, res) => {
       const productsListWithImages = await shopify_service.get_product_images(shopDomain, access_token, productListWithStripeIds);
       // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
       await firebase_service.start_conversation(phoneNumber, shopDomain, productsListWithImages);
-
-
+      await whatsapp_service.sendMessageToCohortCustomer(shopDomain, phoneNumber, personName, selected_people[i].cohort, productsListWithImages);
       // if (!Array.isArray(images) || images.length === 0) {
       //   console.error("No images available or 'images' is not an array");
       // } else {

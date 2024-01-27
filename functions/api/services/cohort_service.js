@@ -76,10 +76,15 @@ function determineCohort(checkout, cohorts) {
 
 async function send_messages(access_token, shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
+
+  const date = new Date();
+  date.setHours(date.getHours() - 2);
+  const checkout_started_at = date.toISOString();
+
   const structured_data2 = [{
     customer_name: "Ahmad", // Replace with your name
     customer_phone: "201200025500", // Replace with your phone number
-    checkout_started_at: "2023-11-24T15:03:36+02:00",
+    checkout_started_at: checkout_started_at,
     cohort: {
       cohort_id: "Pre-defined 1",
       cohort_number: 1,
