@@ -71,6 +71,22 @@ async function get_price_object(product_id) {
   return prices.data[0];
 }
 
+async function get_price_objects(product_ids) {
+  const priceObjects = [];
+
+  for (const product_id of product_ids) {
+    try {
+      const prices = await stripe.prices.list({product: product_id});
+      priceObjects.push(prices.data[0]);
+    } catch (error) {
+      console.error(`Error getting price for product ${product_id}:`, error);
+      // Depending on your use case, you might want to throw the error, return a partial result, or just continue
+    }
+  }
+
+  return priceObjects;
+}
+
 async function get_card_details(payment_method_id) {
   const paymentMethod = await stripe.paymentMethods.retrieve(
       payment_method_id,
@@ -101,7 +117,7 @@ async function generatePaymentLink(phoneNumber, product_id) {
   }
 }
 
-async function generateCheckoutSession(phoneNumber, product_id) {
+async function generateCheckoutSession(phoneNumber) {
   try {
     const session = await stripe.checkout.sessions.create({
       custom_text: {
@@ -123,10 +139,15 @@ async function generateCheckoutSession(phoneNumber, product_id) {
   }
 }
 
-async function generatePaymentIntent(phoneNumber, product_id) {
+async function generatePaymentIntent(phoneNumber, stripe_product_ids) {
   try {
-    const price = await get_price_object(product_id);
-    const price_amount = price.unit_amount;
+    // const price = await get_price_object(product_id);
+    // const price_amount = price.unit_amount;
+    const prices = await get_price_objects(stripe_product_ids);
+    let price_amount;
+    for (const price of prices) {
+      price_amount += price.unit_amount;
+    }
     const user = await firebase_service.get_customer_data(phoneNumber);
     const customer_id = user.customer_id;
     const payment_id = user.payment_method;

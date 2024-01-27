@@ -24,15 +24,15 @@ async function main_control(userPhone, message) {
     await firebase_service.increment_messages(current_shop, userPhone, "You", message);
     switch (text_type) {
       case "yes": {
-        // Handle 'yes' text
-        // ToDo: get the product's id
-        const product_id = await firebase_service.get_product_id(userPhone);
+        // ToDo: get the product's ids from firebase
+        // const product_id = await firebase_service.get_product_id(userPhone);
+        const stripe_product_ids = await firebase_service.get_product_ids(userPhone);
         // ToDo: see if the user is returning or is first time
         const returning_user = await firebase_service.user_has_customer_id(userPhone);
         if (!returning_user) {
         // First time user
         // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
-          const checkout_session = await stripe_service.generateCheckoutSession(userPhone, product_id);
+          const checkout_session = await stripe_service.generateCheckoutSession(userPhone);
           // ToDo: pass this payment link to the whatsapp service with the phone number of the user
           await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
         } else {
@@ -40,7 +40,7 @@ async function main_control(userPhone, message) {
           const status = await firebase_service.get_status(userPhone);
           if (status === "succeeded" || status === "") {
           // ToDo: generate a payment intent of that user
-            const payment_intent = await stripe_service.generatePaymentIntent(userPhone, product_id);
+            const payment_intent = await stripe_service.generatePaymentIntent(userPhone, stripe_product_ids);
             // ToDo: send a message to confirm the payment intent
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
           } else if (status === "requires_confirmation") {
