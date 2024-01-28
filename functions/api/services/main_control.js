@@ -7,6 +7,7 @@ function get_text_type(text) {
   text = text.toLowerCase();
   if (text === "yes") return "yes";
   else if (text === "cancel") return "cancel";
+  else if (text === "edit") return "edit";
   else return "other";
 }
 
@@ -32,11 +33,11 @@ async function main_control(userPhone, message) {
         if (!returning_user) {
         // First time user
         // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
-          // const checkout_session = await stripe_service.generateCheckoutSession(userPhone);
-          const payment_link = await stripe_service.generatePaymentLink(userPhone, stripe_product_ids);
+          const checkout_session = await stripe_service.generateCheckoutSession(userPhone);
+          // const payment_link = await stripe_service.generatePaymentLink(userPhone, stripe_product_ids);
           // ToDo: pass this payment link to the whatsapp service with the phone number of the user
-          // await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, payment_link.url, null, null, null, "payment_link_message");
+          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
+          // await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, payment_link.url, null, null, null, "payment_link_message");
         } else {
         // Returning user
           const status = await firebase_service.get_status(userPhone);
@@ -72,6 +73,14 @@ async function main_control(userPhone, message) {
         // Handle the part where we decrement the sales volume amount when the user refunds
         break;
       }
+      case "edit": {
+        // Handle 'edit' text
+        const user = await firebase_service.get_customer_data(userPhone);
+
+
+        // Handle the part where we decrement the sales volume amount when the user refunds
+        break;
+      }
       default: {
         // Handle other text
         const aiResponse = await openai_service.getOpenAIResponse(userPhone, message);
@@ -88,13 +97,13 @@ async function main_control(userPhone, message) {
 
 
 async function handlePurchase(session) {
+  console.log("Session is: ", session);
   const setup_intent = session.setup_intent;
+  const address = session.shipping_details.address;
   const payment_method = await stripe_service.get_payment_method(setup_intent);
   const user_email = session.customer_details.email;
-  // const user_name = session.customer_details.Name;
-  // const user_phone = await get_user_phone(session.payment_link);
   const user_phone = session.metadata.phone;
-  const customer = await stripe_service.create_customer(user_email, user_phone, payment_method);
+  const customer = await stripe_service.create_customer(user_email, user_phone, payment_method, address);
   await firebase_service.store_data(customer, user_phone, payment_method);
   // const product_id = await firebase_service.get_product_ids(user_phone);
   const stripe_product_ids = await firebase_service.get_product_ids(user_phone);

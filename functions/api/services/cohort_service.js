@@ -78,7 +78,7 @@ async function send_messages(access_token, shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
 
   const date = new Date();
-  date.setHours(date.getHours() - 8);
+  date.setHours(date.getHours() - 2);
   const checkout_started_at = date.toISOString();
 
   const structured_data2 = [{

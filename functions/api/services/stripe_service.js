@@ -49,12 +49,18 @@ async function get_product_ids(product_list) {
 }
 
 
-async function create_customer(email, phone_number, payment_method) {
+async function create_customer(email, phone_number, payment_method, address) {
   const customer = await stripe.customers.create({
-    // name: name,
+    address: {
+      city: address.city,
+      country: address.country,
+      line1: address.line1,
+      line2: address.line2,
+      postal_code: address.postal_code,
+      state: address.state,
+    },
     email: email,
     phone: phone_number,
-    // payment_method: payment_method,
   });
   await stripe.paymentMethods.attach(
       payment_method,
@@ -92,6 +98,13 @@ async function get_card_details(payment_method_id) {
       payment_method_id,
   );
   return paymentMethod;
+}
+
+async function get_customer_address(customer_id) {
+  const customer = await stripe.customers.retrieve(
+      customer_id,
+  );
+  return customer;
 }
 
 // async function generatePaymentLink(phoneNumber, product_id) {
@@ -164,6 +177,14 @@ async function generateCheckoutSession(phoneNumber) {
       },
       // Later on replace those urls with the actual urls of the brands.
       success_url: 'https://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
+      shipping_address_collection: {
+        allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
+      },
+      consent_collection: {
+        payment_method_reuse_agreement: {
+          position: 'auto',
+        },
+      },
     });
     return session;
   } catch (error) {
@@ -178,12 +199,9 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids) {
     const shop = await firebase_service.get_users_conversation(phoneNumber);
     const currency = await firebase_service.get_store_currency(shop);
     const prices = await get_price_objects(stripe_product_ids);
-    console.log("Prices: ", prices);
     let price_amount = 0;
     for (const price of prices) {
-      console.log("Here and price amount: ", price_amount);
       price_amount += price.unit_amount;
-      console.log("Price amount: ", price_amount);
     }
     const user = await firebase_service.get_customer_data(phoneNumber);
     const customer_id = user.customer_id;
@@ -302,4 +320,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {generatePaymentLink, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
+module.exports = {generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};

@@ -6,18 +6,24 @@ function first_or_second_reminder(cohort, last_text, checkout_started_at) {
   // Parse the created_at date string into a Date object
   const checkoutStartedAt = new Date(checkout_started_at);
   // const lastTexted = new Date(last_text.timestamp);
-  const lastTexted = last_text.timestamp.toDate();
+  // const lastTexted = last_text.timestamp.toDate();
   const now = new Date();
-  const diffInMillisecondsBtwLastTimeTexted = now - lastTexted;
+  // const diffInMillisecondsBtwLastTimeTexted = now - lastTexted;
   const diffInMillisecondsBtwCheckoutStart = now - checkoutStartedAt;
   // Convert the difference to hours
-  const diffInHoursBtwLastTimeTexted = diffInMillisecondsBtwLastTimeTexted / 1000 / 60 / 60;
+  // const diffInHoursBtwLastTimeTexted = diffInMillisecondsBtwLastTimeTexted / 1000 / 60 / 60;
   const diffInHoursBtwCheckoutStart = diffInMillisecondsBtwCheckoutStart / 1000 / 60 / 60;
 
 
-  if (cohort.second_reminder_active && diffInHoursBtwLastTimeTexted > 24 && diffInHoursBtwCheckoutStart > cohort.second_reminder_time) {
+  // if (cohort.second_reminder_active && diffInHoursBtwLastTimeTexted > 24 && diffInHoursBtwCheckoutStart > cohort.second_reminder_time) {
+  //   return "2";
+  // } else if (cohort.first_reminder_active && diffInHoursBtwLastTimeTexted > 24 && diffInHoursBtwCheckoutStart > cohort.first_reminder_time) {
+  //   return "1";
+  // }
+
+  if (cohort.second_reminder_active && diffInHoursBtwCheckoutStart > cohort.second_reminder_time) {
     return "2";
-  } else if (cohort.first_reminder_active && diffInHoursBtwLastTimeTexted > 24 && diffInHoursBtwCheckoutStart > cohort.first_reminder_time) {
+  } else if (cohort.first_reminder_active && diffInHoursBtwCheckoutStart > cohort.first_reminder_time) {
     return "1";
   }
 
@@ -25,12 +31,7 @@ function first_or_second_reminder(cohort, last_text, checkout_started_at) {
 }
 
 function construct_message(cohort, reminder, personName, product_list) {
-  console.log("3 Cohort is: ", cohort);
-  console.log("Reminder is: ", reminder);
-  console.log("Message opener is: ", cohort[`message_opener${reminder}`]);
   let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
-
-  console.log("Message after opener is: ", message);
 
   // Construct the product list string
   const productListString = product_list.map((product, index) =>
@@ -41,8 +42,6 @@ function construct_message(cohort, reminder, personName, product_list) {
 
   message += productListString + '\n'+ '\n';
 
-  console.log("Message after product list is: ", message);
-
   // Add discount message if applicable
   if ((reminder === 1 && cohort.discount_in_first) || (reminder === 2 && cohort.discount_in_second)) {
     const discountMessage = cohort[`discount_message${reminder}`]
@@ -50,12 +49,8 @@ function construct_message(cohort, reminder, personName, product_list) {
     message += discountMessage + '\n'+ '\n';
   }
 
-  console.log("Message after discount is: ", message);
-
   // Add closing message
   message += cohort[`message_close${reminder}`];
-
-  console.log("Message after close: ", message);
 
   // Replace personName placeholder
   message = message.replace('{personName}', personName);
@@ -71,35 +66,11 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
     const reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     const message = construct_message(cohort, reminder, personName, product_list);
-    console.log("Message to be sent is: ", message);
     const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
       'Content-Type': 'application/json',
     };
-    // const messageTemplate = await firebase_service.get_message_template(shop, message_type);
-    // messageContent = await getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
-    // let data;
-    // if (productImage != null) {
-    // // send a message with a picture of the product
-    //   data = {
-    //     messaging_product: 'whatsapp',
-    //     to: recipientPhone,
-    //     type: 'image',
-    //     image: {
-    //       link: productImage,
-    //       caption: messageContent,
-    //     },
-    //   };
-    // } else {
-    //   data = {
-    //     messaging_product: 'whatsapp',
-    //     to: recipientPhone,
-    //     text: {
-    //       body: messageContent,
-    //     },
-    //   };
-    // }
     const data = {
       messaging_product: 'whatsapp',
       to: recipientPhone,
@@ -184,7 +155,9 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
     case 'payment_confirmation_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
       const payment_details = await stripe_service.get_card_details(payment_method_id);
-      return create_confirmation_message(payment_details, messageTemplate);
+      const customer_id = await firebase_service.get_customer_id(recipientPhone);
+      const customer = await stripe_service.get_customer_address(customer_id);
+      return create_confirmation_message(payment_details, customer.address, messageTemplate);
     }
     case 'success_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Successful Payment");
@@ -221,13 +194,15 @@ function create_payment_link_message(paymentURL, message_template) {
   return message;
 }
 
-function create_confirmation_message(card_details, message_template) {
+function create_confirmation_message(card_details, address_details, message_template) {
   const brand = card_details.card.brand;
   const capitalizedBrand = brand.charAt(0).toUpperCase() + brand.slice(1);
   const last4 = card_details.card.last4;
+  const address = `${address_details.line1}, ${address_details.line2}, ${address_details.city}, ${address_details.state}, ${address_details.postal_code}, ${address_details.country}`;
   const message = message_template
       .replace('{brand}', capitalizedBrand)
-      .replace('{last4}', last4);
+      .replace('{last4}', last4)
+      .replace('{address}', address);
   return message;
 }
 
