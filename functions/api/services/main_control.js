@@ -68,6 +68,10 @@ async function main_control(userPhone, message) {
         break;
       }
       case "edit": {
+        const customer = await firebase_service.get_customer_data(userPhone);
+        const current_payment_intent = customer.current_payment_intent;
+        // Delete the current payment intent because we will create one and confirm it later!
+        await stripe_service.deletePaymentIntent(current_payment_intent);
         const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
         await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
         break;
@@ -111,7 +115,6 @@ async function handlePurchase(session) {
     }
   }
   // create a confirmed payment intent to charge the customer
-  // await stripe_service.generatePaymentIntent(user_phone, product_id);
   await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids, shop);
   await stripe_service.confirmPaymentIntent(user_phone);
 }

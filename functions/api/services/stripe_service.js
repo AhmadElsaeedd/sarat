@@ -290,7 +290,6 @@ async function confirmPaymentIntent(phoneNumber) {
     const user = await firebase_service.get_customer_data(phoneNumber);
     const payment_intent = user.current_payment_intent;
     const payment_id = user.payment_method;
-    // ToDo: generate a payment intent using the amount of the product
     const paymentIntent = await stripe.paymentIntents.confirm(
         payment_intent,
         {
@@ -304,6 +303,12 @@ async function confirmPaymentIntent(phoneNumber) {
   } catch (error) {
     console.error("Error generating intent:", error.response ? error.response.data : error.message);
   }
+}
+
+async function deletePaymentIntent(payment_intent_id) {
+  await stripe.paymentIntents.cancel(
+      payment_intent_id,
+  );
 }
 
 async function get_payment_method(setup_intent) {
@@ -375,4 +380,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {update_customer, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
+module.exports = {update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
