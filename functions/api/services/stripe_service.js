@@ -71,6 +71,30 @@ async function create_customer(email, phone_number, payment_method, address) {
   return customer;
 }
 
+async function update_customer(customer_id, address, payment_method, phone_number, email) {
+  const customer = await stripe.customers.update(
+      customer_id,
+      {
+        address: {
+          city: address.city,
+          country: address.country,
+          line1: address.line1,
+          line2: address.line2,
+          postal_code: address.postal_code,
+          state: address.state,
+        },
+        phone: phone_number,
+      },
+  );
+  await stripe.paymentMethods.attach(
+      payment_method,
+      {
+        customer: customer.id,
+      },
+  );
+  return customer;
+}
+
 // async function get_price_object(product_id) {
 //   // ToDo: get the price id of the product id
 //   const prices = await stripe.prices.list({product: product_id});
@@ -162,40 +186,70 @@ async function generatePaymentLink(phoneNumber, product_ids) {
   }
 }
 
-async function generateCheckoutSession(phoneNumber) {
+async function generateCheckoutSession(phoneNumber, shop) {
   try {
-    const session = await stripe.checkout.sessions.create({
-      custom_text: {
-        submit: {
-          message: "We'll use your card to facilitate frictionless payments authorized by you.",
+    const customer_id = await firebase_service.get_customer_id(phoneNumber);
+    console.log("Customer ID is: ", customer_id);
+    let session;
+    if (customer_id) {
+      session = await stripe.checkout.sessions.create({
+        customer: customer_id,
+        custom_text: {
+          submit: {
+            message: "We'll use your card to facilitate frictionless payments authorized by you.",
+          },
         },
-      },
-      payment_method_types: ['card'],
-      mode: 'setup',
-      metadata: {
-        phone: phoneNumber,
-      },
-      // Later on replace those urls with the actual urls of the brands.
-      success_url: 'https://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
-      shipping_address_collection: {
-        allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
-      },
-      consent_collection: {
-        payment_method_reuse_agreement: {
-          position: 'auto',
+        payment_method_types: ['card'],
+        mode: 'setup',
+        metadata: {
+          phone: phoneNumber,
+          shop: shop,
         },
-      },
-    });
+        // Later on replace those urls with the actual urls of the brands.
+        success_url: 'https://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
+        shipping_address_collection: {
+          allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
+        },
+        consent_collection: {
+          payment_method_reuse_agreement: {
+            position: 'auto',
+          },
+        },
+      });
+    } else {
+      session = await stripe.checkout.sessions.create({
+        custom_text: {
+          submit: {
+            message: "We'll use your card to facilitate frictionless payments authorized by you.",
+          },
+        },
+        payment_method_types: ['card'],
+        mode: 'setup',
+        metadata: {
+          phone: phoneNumber,
+          shop: shop,
+        },
+        // Later on replace those urls with the actual urls of the brands.
+        success_url: 'https://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
+        shipping_address_collection: {
+          allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
+        },
+        consent_collection: {
+          payment_method_reuse_agreement: {
+            position: 'auto',
+          },
+        },
+      });
+    }
+
     return session;
   } catch (error) {
     console.error("Error generating checkout session:", error.response ? error.response.data : error.message);
   }
 }
 
-async function generatePaymentIntent(phoneNumber, stripe_product_ids) {
+async function generatePaymentIntent(phoneNumber, stripe_product_ids, shop) {
   try {
-    // const price = await get_price_object(product_id);
-    // const price_amount = price.unit_amount;
     const shop = await firebase_service.get_users_conversation(phoneNumber);
     const currency = await firebase_service.get_store_currency(shop);
     const prices = await get_price_objects(stripe_product_ids);
@@ -220,6 +274,9 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids) {
       setup_future_usage: 'off_session',
       payment_method: payment_id,
       receipt_email: email,
+      metadata: {
+        shop: shop,
+      },
     });
     await firebase_service.update_status(phoneNumber, paymentIntent);
     return paymentIntent;
@@ -242,9 +299,7 @@ async function confirmPaymentIntent(phoneNumber) {
     );
     await firebase_service.update_status(phoneNumber, paymentIntent);
     const shop = await firebase_service.get_users_conversation(phoneNumber);
-    // await firebase_service.increment_number_of_sales(shop);
     await firebase_service.increment_sales(shop, paymentIntent.amount/100, paymentIntent.id);
-    // await firebase_service.increment_decrement_sales_volume(shop, paymentIntent.amount);
     return paymentIntent;
   } catch (error) {
     console.error("Error generating intent:", error.response ? error.response.data : error.message);
@@ -320,4 +375,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
+module.exports = {update_customer, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};

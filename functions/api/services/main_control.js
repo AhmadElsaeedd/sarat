@@ -23,27 +23,21 @@ async function main_control(userPhone, message) {
     const text_type = get_text_type(message);
     const current_shop = await firebase_service.get_users_conversation(userPhone);
     await firebase_service.increment_messages(current_shop, userPhone, "You", message);
+    const stripe_product_ids = await firebase_service.get_product_ids(userPhone);
     switch (text_type) {
       case "yes": {
-        // ToDo: get the product's ids from firebase
-        // const product_id = await firebase_service.get_product_id(userPhone);
-        const stripe_product_ids = await firebase_service.get_product_ids(userPhone);
         // ToDo: see if the user is returning or is first time
         const returning_user = await firebase_service.user_has_customer_id(userPhone);
         if (!returning_user) {
-        // First time user
-        // Instead of a payment link, generate a checkout session with the link generated from the generate payment link function
-          const checkout_session = await stripe_service.generateCheckoutSession(userPhone);
-          // const payment_link = await stripe_service.generatePaymentLink(userPhone, stripe_product_ids);
-          // ToDo: pass this payment link to the whatsapp service with the phone number of the user
+          // First time user
+          const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
           await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
-          // await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, payment_link.url, null, null, null, "payment_link_message");
         } else {
         // Returning user
           const status = await firebase_service.get_status(userPhone);
           if (status === "succeeded" || status === "") {
           // ToDo: generate a payment intent of that user
-            const payment_intent = await stripe_service.generatePaymentIntent(userPhone, stripe_product_ids);
+            const payment_intent = await stripe_service.generatePaymentIntent(userPhone, stripe_product_ids, current_shop);
             // ToDo: send a message to confirm the payment intent
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
           } else if (status === "requires_confirmation") {
@@ -74,11 +68,8 @@ async function main_control(userPhone, message) {
         break;
       }
       case "edit": {
-        // Handle 'edit' text
-        const user = await firebase_service.get_customer_data(userPhone);
-
-
-        // Handle the part where we decrement the sales volume amount when the user refunds
+        const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
+        await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
         break;
       }
       default: {
@@ -97,19 +88,31 @@ async function main_control(userPhone, message) {
 
 
 async function handlePurchase(session) {
-  console.log("Session is: ", session);
   const setup_intent = session.setup_intent;
   const address = session.shipping_details.address;
-  const payment_method = await stripe_service.get_payment_method(setup_intent);
   const user_email = session.customer_details.email;
   const user_phone = session.metadata.phone;
-  const customer = await stripe_service.create_customer(user_email, user_phone, payment_method, address);
-  await firebase_service.store_data(customer, user_phone, payment_method);
-  // const product_id = await firebase_service.get_product_ids(user_phone);
+  const shop = session.metadata.shop;
   const stripe_product_ids = await firebase_service.get_product_ids(user_phone);
+  const payment_method = await stripe_service.get_payment_method(setup_intent);
+  const last_message = await firebase_service.get_last_message_by_customer(shop, user_phone);
+  const text_type = get_text_type(last_message.message_content);
+  switch (text_type) {
+    case "yes": {
+      const customer = await stripe_service.create_customer(user_email, user_phone, payment_method, address);
+      await firebase_service.store_data(customer, user_phone, payment_method);
+      break;
+    }
+    case "edit": {
+      const customer_id = session.customer;
+      const customer = await stripe_service.update_customer(customer_id, address, payment_method, user_phone, user_email);
+      await firebase_service.store_data(customer, user_phone, payment_method);
+      break;
+    }
+  }
   // create a confirmed payment intent to charge the customer
   // await stripe_service.generatePaymentIntent(user_phone, product_id);
-  await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids);
+  await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids, shop);
   await stripe_service.confirmPaymentIntent(user_phone);
 }
 
