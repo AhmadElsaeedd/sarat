@@ -36,9 +36,7 @@ async function main_control(userPhone, message) {
         // Returning user
           const status = await firebase_service.get_status(userPhone);
           if (status === "succeeded" || status === "") {
-          // ToDo: generate a payment intent of that user
             const payment_intent = await stripe_service.generatePaymentIntent(userPhone, stripe_product_ids, current_shop);
-            // ToDo: send a message to confirm the payment intent
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
           } else if (status === "requires_confirmation") {
             const payment_intent = await stripe_service.confirmPaymentIntent(userPhone, current_shop);

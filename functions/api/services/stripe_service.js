@@ -239,9 +239,13 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids, shop) {
     const stripe = getStripeInstance(secretKey);
     const currency = await firebase_service.get_store_currency(shop);
     const prices = await get_price_objects(stripe_product_ids, shop, currency);
+    const discount_amount = await firebase_service.get_discount_amount(phoneNumber);
     let price_amount = 0;
     for (const price of prices) {
       price_amount += price.unit_amount;
+    }
+    if (discount_amount && discount_amount > 0) {
+      price_amount = price_amount * (100-discount_amount)/100;
     }
     const user = await firebase_service.get_customer_data(phoneNumber);
     const customer_id = user.customer_id;
@@ -285,7 +289,7 @@ async function confirmPaymentIntent(phoneNumber, shop) {
         },
     );
     await firebase_service.update_status(phoneNumber, paymentIntent);
-    // const shop = await firebase_service.get_users_conversation(phoneNumber);
+    await firebase_service.use_discount(phoneNumber);
     await firebase_service.increment_sales(shop, paymentIntent.amount/100, paymentIntent.id);
     return paymentIntent;
   } catch (error) {

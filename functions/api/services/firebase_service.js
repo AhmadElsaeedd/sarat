@@ -135,10 +135,10 @@ async function save_store_access_token(shop, access_token) {
     invitation_code: invitation_code,
     shopify_access_token: access_token,
     shop: shop,
-    payment_link_message: "Awesome! go here to complete your payment {paymentURL}!",
-    payment_confirmation_message: "Awesome! Are you sure you want to pay with your {brand} card ending with {last4} to the address {address}? Say 'Yes' to confirm, or 'Edit' to edit your card details or address. You will be able to cancel in the next 24 hours.",
-    success_message: "{payment_status}! Text us 'Cancel' to cancel, only in the next 24 hours.",
-    refund_message: "{refund_status}. Your payment has been canceled and the amount will be refunded to your card.",
+    payment_link_message: "Awesome! go here to complete your payment: \n \n {paymentURL}!",
+    payment_confirmation_message: "Awesome! Just to confirm: \n \n 💳 {brand} card ending with {last4} \n \n 🏡{address}? \n \n Just say 'Yes' to confirm, or 'Edit' to edit your card details or address. You will be able to cancel in the next 24 hours.",
+    success_message: "{payment_status}! \n \n Say 'Cancel' to cancel, only in the next 24 hours.",
+    refund_message: "{refund_status}. \n \n Your payment has been canceled and the amount will be refunded to your card.",
   }, {merge: true});
 
   const firstCohortDocument = {
@@ -285,6 +285,7 @@ async function start_conversation(phoneNumber, shop, product_list) {
     current_product_list: product_list,
     phone_number: phoneNumber,
     in_conversation_with: shop,
+    payment_intent_status: "",
   }, {merge: true});
 }
 
@@ -501,4 +502,36 @@ async function get_customer_id(phoneNumber) {
   } else return null;
 }
 
-module.exports = {get_product_id, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+async function apply_discount_to_customer(phoneNumber, discount_amount) {
+  if (typeof phoneNumber === 'number') {
+    phoneNumber = phoneNumber.toString();
+  }
+  const user_ref = db.collection('Customers').doc(phoneNumber);
+
+  // Purchase complete now I want to store the user's data
+  await user_ref.set({
+    current_discount_amount: discount_amount,
+  }, {merge: true});
+}
+
+async function use_discount(phoneNumber) {
+  if (typeof phoneNumber === 'number') {
+    phoneNumber = phoneNumber.toString();
+  }
+  const user_ref = db.collection('Customers').doc(phoneNumber);
+
+  // Purchase complete now I want to store the user's data
+  await user_ref.set({
+    current_discount_amount: 0,
+  }, {merge: true});
+}
+
+async function get_discount_amount(phoneNumber) {
+  const user_doc = await db.collection('Customers').doc(phoneNumber).get();
+  const user_data = user_doc.data();
+  if (user_doc.exists && user_data.current_discount_amount) {
+    return user_data.current_discount_amount;
+  } else return null;
+}
+
+module.exports = {get_product_id, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

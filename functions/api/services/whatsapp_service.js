@@ -47,7 +47,7 @@ function first_or_second_reminder_without_last_text(cohort, checkout_started_at)
   return null;
 }
 
-function construct_message(cohort, reminder, personName, product_list, store_names) {
+async function construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names) {
   let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
 
   // Construct the product list string
@@ -63,8 +63,10 @@ function construct_message(cohort, reminder, personName, product_list, store_nam
   if ((Number(reminder) === 1 && cohort.discount_in_first) || (Number(reminder) === 2 && cohort.discount_in_second)) {
     const discountMessage = cohort[`discount_message${reminder}`]
         .replace('{discountAmount}', cohort[`discount_amount_in_${reminder}`]);
+      // I need to store that this person has a discount here!
     message += discountMessage + '\n'+ '\n';
   }
+  await firebase_service.apply_discount_to_customer(recipientPhone, cohort[`discount_amount_in_${reminder}`]);
 
   // Add closing message
   message += cohort[`message_close${reminder}`];
@@ -88,7 +90,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     } else {
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
-    const message = construct_message(cohort, reminder, personName, product_list, store_names);
+    const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names);
     const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
