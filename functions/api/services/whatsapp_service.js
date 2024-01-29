@@ -216,7 +216,7 @@ function create_refill_message(productName, personName = null, messageTemplate) 
 }
 
 function create_payment_link_message(paymentURL, message_template) {
-  const message = message_template.replace('{paymentURL}', paymentURL);
+  const message = message_template.replace('{paymentURL}', paymentURL).replace(/\\n/g, '\n');
   return message;
 }
 
@@ -228,13 +228,14 @@ function create_confirmation_message(card_details, address_details, message_temp
   const message = message_template
       .replace('{brand}', capitalizedBrand)
       .replace('{last4}', last4)
-      .replace('{address}', address);
+      .replace('{address}', address)
+      .replace(/\\n/g, '\n');
   return message;
 }
 
 function create_success_message(payment_status, message_template) {
   const capitalizedStatus = payment_status.charAt(0).toUpperCase() + payment_status.slice(1);
-  const message = message_template.replace('{payment_status}', capitalizedStatus);
+  const message = message_template.replace('{payment_status}', capitalizedStatus).replace(/\\n/g, '\n');
   return message;
 }
 
