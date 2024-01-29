@@ -107,7 +107,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     };
     console.log("Data is: ", data);
     await firebase_service.increment_conversations(shop, recipientPhone);
-    await firebase_service.increment_messages(shop, "You", recipientPhone, message);
+    await firebase_service.increment_messages(shop, "You", recipientPhone, message, null);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
@@ -151,8 +151,7 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
         },
       };
     }
-    // await firebase_service.increment_total_messages(shop);
-    await firebase_service.increment_messages(shop, "You", recipientPhone, messageContent);
+    await firebase_service.increment_messages(shop, "You", recipientPhone, messageContent, null);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {

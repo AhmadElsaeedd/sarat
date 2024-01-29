@@ -18,11 +18,11 @@ function isCreatedInLast24Hours(obj) {
   return diff <= 86400; // true if created in last 24 hours, false otherwise
 }
 
-async function main_control(userPhone, message) {
+async function main_control(userPhone, message, message_id) {
   try {
     const text_type = get_text_type(message);
     const current_shop = await firebase_service.get_users_conversation(userPhone);
-    await firebase_service.increment_messages(current_shop, userPhone, "You", message);
+    await firebase_service.increment_messages(current_shop, userPhone, "You", message, message_id);
     const stripe_product_ids = await firebase_service.get_product_ids(userPhone);
     switch (text_type) {
       case "yes": {

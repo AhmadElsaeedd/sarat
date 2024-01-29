@@ -1,4 +1,5 @@
 const main_control = require('../services/main_control');
+const firebase_service = require('../services/firebase_service');
 
 const verifyToken = 'testing'; // make this a better password and put it in .env
 
@@ -33,8 +34,16 @@ const postWebhook = async (req, res) => {
                 // ToDo: get the phone number of the user who sent the message
                 const userPhone = message.from;
                 const message_text = message.text.body;
+                // Have to check whether this is a duplicate message or not using this ID!
+                const messageId = message.id;
+                const current_shop = await firebase_service.get_users_conversation(userPhone);
+                const message_is_duplicate = await firebase_service.does_message_exist(current_shop, messageId);
+                if (message_is_duplicate) {
+                  console.log("Duplicate message received, ignoring...");
+                  return;
+                }
                 console.log("Received message from", userPhone, ": ", message_text);
-                await main_control.main_control(userPhone, message_text);
+                await main_control.main_control(userPhone, message_text, messageId);
                 console.log("SENT MESSAGE");
               });
 
