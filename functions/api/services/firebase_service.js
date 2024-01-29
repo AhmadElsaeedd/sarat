@@ -123,6 +123,8 @@ async function save_store_access_token(shop, access_token) {
   const invitation_code = (Math.random().toString(36)+'000000').substring(2, 8);
 
   await stores_ref.set({
+    brand_name: "",
+    human_name: "",
     stripe_secret_token: "",
     stripe_endpoint_secret: "",
     whatsapp_access_token: "",
@@ -154,12 +156,12 @@ async function save_store_access_token(shop, access_token) {
     first_reminder_active: true,
     first_reminder_time: 1,
     items_in_cart: [0, 10],
-    message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
-    message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
+    message_close1: "Just text \"Yes\" and I'll help you checkout now!",
+    message_close2: "Just text \"Yes\" and I'll help you checkout now!",
     message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
     message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-    product_list1: "{productName}: {variantTitle}",
-    product_list2: "{productName}: {variantTitle}",
+    product_list1: "{productName} {variantTitle}",
+    product_list2: "{productName} {variantTitle}",
     purchase_frequency: ["first_time", "returning"],
     second_reminder_active: true,
     second_reminder_time: 6,
@@ -181,12 +183,12 @@ async function save_store_access_token(shop, access_token) {
     first_reminder_active: true,
     first_reminder_time: 2,
     items_in_cart: [0, 10],
-    message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
-    message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
+    message_close1: "Just text \"Yes\" and I'll help you checkout now!",
+    message_close2: "Just text \"Yes\" and I'll help you checkout now!",
     message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
     message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-    product_list1: "{productName}: {variantTitle}",
-    product_list2: "{productName}: {variantTitle}",
+    product_list1: "{productName} {variantTitle}",
+    product_list2: "{productName} {variantTitle}",
     purchase_frequency: ["first_time"],
     second_reminder_active: true,
     second_reminder_time: 8,
@@ -432,6 +434,17 @@ async function get_whatsapp_keys(shop) {
   } else return null;
 }
 
+async function get_store_humanName_brandName(shop) {
+  const shop_doc = await db.collection('Shopify Stores').doc(shop).get();
+  const shop_data = shop_doc.data();
+  if (shop_doc.exists) {
+    return {
+      brand_name: shop_data.brand_name,
+      human_name: shop_data.human_name,
+    };
+  } else return null;
+}
+
 async function get_stripe_key(shop) {
   const shop_doc = await db.collection('Shopify Stores').doc(shop).get();
   const shop_data = shop_doc.data();
@@ -488,4 +501,4 @@ async function get_customer_id(phoneNumber) {
   } else return null;
 }
 
-module.exports = {get_product_id, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

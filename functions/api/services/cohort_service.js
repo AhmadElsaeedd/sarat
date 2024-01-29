@@ -78,7 +78,7 @@ async function send_messages(access_token, shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
 
   const date = new Date();
-  // date.setHours(date.getHours() - 0.5);
+  date.setHours(date.getHours() - 9);
   const checkout_started_at = date.toISOString();
 
   const structured_data2 = [{
@@ -90,31 +90,31 @@ async function send_messages(access_token, shop, structured_data) {
       cohort_type: "Pre-defined",
       cohort_number: 1,
       discount_amount_in_1: 0,
-      discount_amount_in_2: 10,
+      discount_amount_in_2: 20,
       discount_in_first: false,
       discount_in_second: true,
-      discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
-      discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
+      discount_message1: "You'll have a {discountAmount}% discount if you complete your purchase now.",
+      discount_message2: "You'll have a {discountAmount}% discount if you complete your purchase now.",
       first_reminder_active: true,
       first_reminder_time: 1,
       items_in_cart: [0, 10],
-      message_close1: "Just text \"Yes\" and I'll send you a checkout link!",
-      message_close2: "Just text \"Yes\" and I'll send you a checkout link!",
-      message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-      message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-      product_list1: "{productName}: {variantTitle}",
-      product_list2: "{productName}: {variantTitle}",
+      message_close1: "Just reply \"Yes\" and I'll help you checkout now!🚀",
+      message_close2: "Just reply \"Yes\" and I'll help you checkout now!🚀",
+      message_opener1: "Hey {personName},👋 I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+      message_opener2: "Hey {personName},👋 I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+      product_list1: "{productName} {variantTitle}",
+      product_list2: "{productName} {variantTitle}",
       purchase_frequency: ["first_time", "returning"],
       second_reminder_active: true,
       second_reminder_time: 6,
     },
     product_list: [{
-      product_id: 8919619764515,
-      product_name: "Gift Card",
+      product_id: 8839376765226,
+      product_name: "Blue & Pink accent embroided 21 Cap",
       // variant_title: "M",
     }, {
-      product_id: 8919619797283,
-      product_name: "The Multi-location Snowboard",
+      product_id: 8839349535018,
+      product_name: "Bubbles Grey washed hoodie ( Blue Accent )",
       // variant_title: "Medium",
     },
     ],

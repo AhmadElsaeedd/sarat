@@ -108,20 +108,14 @@ async function update_customer(customer_id, address, payment_method, phone_numbe
   return customer;
 }
 
-// async function get_price_object(product_id) {
-//   // ToDo: get the price id of the product id
-//   const prices = await stripe.prices.list({product: product_id});
-//   return prices.data[0];
-// }
-
-async function get_price_objects(product_ids, shop) {
+async function get_price_objects(product_ids, shop, currency) {
   const secretKey = await firebase_service.get_stripe_key(shop);
   const stripe = getStripeInstance(secretKey);
   const priceObjects = [];
 
   for (const product_id of product_ids) {
     try {
-      const prices = await stripe.prices.list({product: product_id});
+      const prices = await stripe.prices.list({product: product_id, currency: currency});
       priceObjects.push(prices.data[0]);
     } catch (error) {
       console.error(`Error getting price for product ${product_id}:`, error);
@@ -154,7 +148,8 @@ async function generatePaymentLink(phoneNumber, product_ids, shop) {
   try {
     const secretKey = await firebase_service.get_stripe_key(shop);
     const stripe = getStripeInstance(secretKey);
-    const prices = await get_price_objects(product_ids, shop);
+    const store_currency = await firebase_service.get_store_currency(shop);
+    const prices = await get_price_objects(product_ids, shop, store_currency);
     const data = [];
     for (const price of prices) {
       data.push({
@@ -243,7 +238,7 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids, shop) {
     const secretKey = await firebase_service.get_stripe_key(shop);
     const stripe = getStripeInstance(secretKey);
     const currency = await firebase_service.get_store_currency(shop);
-    const prices = await get_price_objects(stripe_product_ids, shop);
+    const prices = await get_price_objects(stripe_product_ids, shop, currency);
     let price_amount = 0;
     for (const price of prices) {
       price_amount += price.unit_amount;
@@ -377,21 +372,25 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
       }
     }
 
-    // Check if a price already exists for the product
+    // Note: Convert price to the smallest unit (most currencies that are relevant to us are this)
+    // USD, EUR, AED, EGP, GBP, AUD, CHF, ZAR, INR, SGD, HKD, NZD, SEK, DKK, NOK, MXN, BRL, MYR, PHP, THB
+    const priceInSmallestUnit = parseInt(parseFloat(price) * 100);
+    currency = currency.toLowerCase();
+
+    // Check if a price already exists for the product with the same currency
     const prices = await stripe.prices.list({product: product.id});
-    if (prices.data.length === 0) {
-      // If no price exists, create a new one
-      // Note: Convert price to the smallest unit (most currencies that are relevant to us are this)
-      // USD, EUR, AED, EGP, GBP, AUD, CHF, ZAR, INR, SGD, HKD, NZD, SEK, DKK, NOK, MXN, BRL, MYR, PHP, THB
-      const priceInSmallestUnit = parseInt(parseFloat(price) * 100);
+    const existingPrice = prices.data.find((p) => p.currency === currency);
+
+    if (!existingPrice || existingPrice.unit_amount !== priceInSmallestUnit) {
+      // If no price exists with the same currency, or the price has changed, create a new one
       await stripe.prices.create({
         unit_amount: priceInSmallestUnit,
-        currency: currency.toLowerCase(),
+        currency: currency,
         product: product.id,
       });
-      console.log(`Price created for product: ${productName} with price: ${price}`);
+      console.log(`Price created for product: ${productName} with price: ${price} and currency: ${currency}`);
     } else {
-      console.log(`Product and price already exist, skipping: ${productName}`);
+      console.log(`Product and price already exist with the same values, skipping: ${productName}`);
     }
   } catch (error) {
     console.error(`Error creating product: ${productName}`, error);

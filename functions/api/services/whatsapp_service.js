@@ -47,20 +47,20 @@ function first_or_second_reminder_without_last_text(cohort, checkout_started_at)
   return null;
 }
 
-function construct_message(cohort, reminder, personName, product_list) {
+function construct_message(cohort, reminder, personName, product_list, store_names) {
   let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
 
   // Construct the product list string
   const productListString = product_list.map((product, index) =>
     `${index + 1}. ` + cohort[`product_list${reminder}`]
         .replace('{productName}', product.product_name)
-        .replace('{variantTitle}', product.variant_title),
+        .replace('{variantTitle}', product.variant_title ? ": " + product.variant_title : ''),
   ).join('\n');
 
   message += productListString + '\n'+ '\n';
 
   // Add discount message if applicable
-  if ((reminder === 1 && cohort.discount_in_first) || (reminder === 2 && cohort.discount_in_second)) {
+  if ((Number(reminder) === 1 && cohort.discount_in_first) || (Number(reminder) === 2 && cohort.discount_in_second)) {
     const discountMessage = cohort[`discount_message${reminder}`]
         .replace('{discountAmount}', cohort[`discount_amount_in_${reminder}`]);
     message += discountMessage + '\n'+ '\n';
@@ -71,22 +71,16 @@ function construct_message(cohort, reminder, personName, product_list) {
 
   // Replace personName placeholder
   message = message.replace('{personName}', personName);
+  message = message.replace('{humanName}', store_names.human_name);
+  message = message.replace('{brandName}', store_names.brand_name);
 
   return message;
 }
 
 async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt) {
   try {
-    console.log("Shop is: ", shop);
-    console.log("Recepient Phone is: ", recipientPhone);
-    console.log("Person name is: ", personName);
-    console.log("Cohort is: ", cohort);
-    console.log("Product list is: ", product_list);
-    console.log("Checkout started at: ", checkoutStartedAt);
-    // Here use the product image url to send the message to the customer
-    // const shop = await firebase_service.get_users_conversation(recipientPhone);
     const keys = await firebase_service.get_whatsapp_keys(shop);
-    console.log("Keys are: ", keys);
+    const store_names = await firebase_service.get_store_humanName_brandName(shop);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
     let reminder;
     if (!last_text_to_customer) {
@@ -94,9 +88,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     } else {
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
-    console.log("Reminder is: ", reminder);
-    const message = construct_message(cohort, reminder, personName, product_list);
-    console.log("Message is: ", message);
+    const message = construct_message(cohort, reminder, personName, product_list, store_names);
     const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
