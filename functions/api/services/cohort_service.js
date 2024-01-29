@@ -129,7 +129,6 @@ async function send_messages(access_token, shop, structured_data) {
       'X-Shopify-Access-Token': access_token,
     },
   });
-  // do this request from the terminal with 1 customer and test with it!
   return response;
 }
 

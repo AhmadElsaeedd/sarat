@@ -356,25 +356,42 @@ async function create_refund(phoneNumber, payment_intent) {
 
 async function createProductAndPrice(productName, shopify_product_id, price, currency) {
   try {
-    // Create a product
-    const product = await stripe.products.create({
-      name: productName,
-      metadata: {
-        shopify_product_id: shopify_product_id,
-      },
-    });
+    // Check if product already exists
+    let product;
+    try {
+      const productId = await get_product_id(productName);
+      product = await stripe.products.retrieve(productId);
+    } catch (error) {
+      // If product does not exist, create a new one
+      if (error.message === `Product with name ${productName} not found`) {
+        product = await stripe.products.create({
+          name: productName,
+          metadata: {
+            shopify_product_id: shopify_product_id,
+          },
+        });
+        console.log(`Product created: ${productName}`);
+      } else {
+        throw error; // If the error is not about the product not being found, rethrow it
+      }
+    }
 
-    // Create a price for the product
-    // Note: Convert price to the smallest unit (most currencies that are relevant to us are this)
-    // USD, EUR, AED, EGP, GBP, AUD, CHF, ZAR, INR, SGD, HKD, NZD, SEK, DKK, NOK, MXN, BRL, MYR, PHP, THB
-    const priceInSmallestUnit = parseInt(parseFloat(price) * 100);
-    await stripe.prices.create({
-      unit_amount: priceInSmallestUnit,
-      currency: currency.toLowerCase(),
-      product: product.id,
-    });
-
-    console.log(`Product created: ${productName} with price: ${price}`);
+    // Check if a price already exists for the product
+    const prices = await stripe.prices.list({product: product.id});
+    if (prices.data.length === 0) {
+      // If no price exists, create a new one
+      // Note: Convert price to the smallest unit (most currencies that are relevant to us are this)
+      // USD, EUR, AED, EGP, GBP, AUD, CHF, ZAR, INR, SGD, HKD, NZD, SEK, DKK, NOK, MXN, BRL, MYR, PHP, THB
+      const priceInSmallestUnit = parseInt(parseFloat(price) * 100);
+      await stripe.prices.create({
+        unit_amount: priceInSmallestUnit,
+        currency: currency.toLowerCase(),
+        product: product.id,
+      });
+      console.log(`Price created for product: ${productName} with price: ${price}`);
+    } else {
+      console.log(`Product and price already exist, skipping: ${productName}`);
+    }
   } catch (error) {
     console.error(`Error creating product: ${productName}`, error);
   }
