@@ -78,7 +78,7 @@ async function send_messages(access_token, shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
 
   const date = new Date();
-  date.setHours(date.getHours() - 2);
+  // date.setHours(date.getHours() - 0.5);
   const checkout_started_at = date.toISOString();
 
   const structured_data2 = [{
@@ -109,13 +109,13 @@ async function send_messages(access_token, shop, structured_data) {
       second_reminder_time: 6,
     },
     product_list: [{
-      product_id: 8789787246890,
-      product_name: "Chanel Gray Joggers Straight / Cuffed Fit",
-      variant_title: "M",
+      product_id: 8919619764515,
+      product_name: "Gift Card",
+      // variant_title: "M",
     }, {
-      product_id: 8839346061610,
-      product_name: "Blossom Grey washed hoodie ( Pink Accent )",
-      variant_title: "Medium",
+      product_id: 8919619797283,
+      product_name: "The Multi-location Snowboard",
+      // variant_title: "Medium",
     },
     ],
   }];

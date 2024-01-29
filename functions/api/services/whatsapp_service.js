@@ -30,6 +30,23 @@ function first_or_second_reminder(cohort, last_text, checkout_started_at) {
   return null;
 }
 
+function first_or_second_reminder_without_last_text(cohort, checkout_started_at) {
+  // Parse the created_at date string into a Date object
+  const checkoutStartedAt = new Date(checkout_started_at);
+  const now = new Date();
+  const diffInMillisecondsBtwCheckoutStart = now - checkoutStartedAt;
+  // Convert the difference to hours
+  const diffInHoursBtwCheckoutStart = diffInMillisecondsBtwCheckoutStart / 1000 / 60 / 60;
+
+  if (cohort.second_reminder_active && diffInHoursBtwCheckoutStart > cohort.second_reminder_time) {
+    return "2";
+  } else if (cohort.first_reminder_active && diffInHoursBtwCheckoutStart > cohort.first_reminder_time) {
+    return "1";
+  }
+
+  return null;
+}
+
 function construct_message(cohort, reminder, personName, product_list) {
   let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
 
@@ -60,12 +77,26 @@ function construct_message(cohort, reminder, personName, product_list) {
 
 async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt) {
   try {
-  // Here use the product image url to send the message to the customer
+    console.log("Shop is: ", shop);
+    console.log("Recepient Phone is: ", recipientPhone);
+    console.log("Person name is: ", personName);
+    console.log("Cohort is: ", cohort);
+    console.log("Product list is: ", product_list);
+    console.log("Checkout started at: ", checkoutStartedAt);
+    // Here use the product image url to send the message to the customer
     // const shop = await firebase_service.get_users_conversation(recipientPhone);
     const keys = await firebase_service.get_whatsapp_keys(shop);
+    console.log("Keys are: ", keys);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
-    const reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
+    let reminder;
+    if (!last_text_to_customer) {
+      reminder = first_or_second_reminder_without_last_text(cohort, checkoutStartedAt);
+    } else {
+      reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
+    }
+    console.log("Reminder is: ", reminder);
     const message = construct_message(cohort, reminder, personName, product_list);
+    console.log("Message is: ", message);
     const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
@@ -80,6 +111,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
         caption: message,
       },
     };
+    console.log("Data is: ", data);
     await firebase_service.increment_conversations(shop, recipientPhone);
     await firebase_service.increment_messages(shop, "You", recipientPhone, message);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});

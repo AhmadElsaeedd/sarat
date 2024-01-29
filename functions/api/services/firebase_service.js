@@ -463,6 +463,9 @@ async function get_last_message_to_customer(shop, phoneNumber) {
       .limit(1)
       .get();
 
+  if (snapshot.empty) {
+    return null;
+  }
   return snapshot.docs[0].data();
 }
 
