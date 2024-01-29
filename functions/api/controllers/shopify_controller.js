@@ -59,8 +59,8 @@ const postShopifyOnboardBrand = async (req, res) => {
       const price = product.variants[0].price;
       const title = product.title;
       const id = product.id;
-      await stripe_service.createProductAndPrice(title, id, price, store_currency);
-      await delay(1000); // Delay of 1 second (1000 milliseconds) between each API call
+      await stripe_service.createProductAndPrice(title, id, price, store_currency, shop);
+      await delay(500); // Delay of 1 second (1000 milliseconds) between each API call
     }
 
 

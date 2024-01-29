@@ -154,9 +154,9 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
     }
     case 'payment_confirmation_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
-      const payment_details = await stripe_service.get_card_details(payment_method_id);
-      const customer_id = await firebase_service.get_customer_id(recipientPhone);
-      const customer = await stripe_service.get_customer_address(customer_id);
+      const payment_details = await stripe_service.get_card_details(payment_method_id, shop);
+      const customer_id = await firebase_service.get_customer_id(recipientPhone, shop);
+      const customer = await stripe_service.get_customer_address(customer_id, shop);
       return create_confirmation_message(payment_details, customer.address, messageTemplate);
     }
     case 'success_message': {

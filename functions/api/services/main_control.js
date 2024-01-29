@@ -41,7 +41,7 @@ async function main_control(userPhone, message) {
             // ToDo: send a message to confirm the payment intent
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
           } else if (status === "requires_confirmation") {
-            const payment_intent = await stripe_service.confirmPaymentIntent(userPhone);
+            const payment_intent = await stripe_service.confirmPaymentIntent(userPhone, current_shop);
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, payment_intent.status, null, "success_message");
           }
         }
@@ -53,13 +53,13 @@ async function main_control(userPhone, message) {
         const user_email = user.customer_email;
         const current_payment_intent = user.current_payment_intent;
         // get the customer id of the user from stripe using their email
-        const customer_id = await stripe_service.get_customer_id(user_email);
+        const customer_id = await stripe_service.get_customer_id(user_email, current_shop);
         // get the id of the last payment intent of the user
-        const last_payment_intent = await stripe_service.get_last_payment_intent(customer_id);
+        const last_payment_intent = await stripe_service.get_last_payment_intent(customer_id, current_shop);
         // make sure that the one in firebase and the one from stripe are the same
         if (current_payment_intent === last_payment_intent.id && isCreatedInLast24Hours(last_payment_intent)) {
           // refund it
-          const refund_object = await stripe_service.create_refund(userPhone, last_payment_intent.id);
+          const refund_object = await stripe_service.create_refund(userPhone, last_payment_intent.id, current_shop);
           await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, refund_object.status, null, null, "refund_message");
         } else {
           await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, null, "failed_refund");
@@ -71,7 +71,7 @@ async function main_control(userPhone, message) {
         const customer = await firebase_service.get_customer_data(userPhone);
         const current_payment_intent = customer.current_payment_intent;
         // Delete the current payment intent because we will create one and confirm it later!
-        await stripe_service.deletePaymentIntent(current_payment_intent);
+        await stripe_service.deletePaymentIntent(current_payment_intent, current_shop);
         const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
         await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
         break;
@@ -98,25 +98,25 @@ async function handlePurchase(session) {
   const user_phone = session.metadata.phone;
   const shop = session.metadata.shop;
   const stripe_product_ids = await firebase_service.get_product_ids(user_phone);
-  const payment_method = await stripe_service.get_payment_method(setup_intent);
+  const payment_method = await stripe_service.get_payment_method(setup_intent, shop);
   const last_message = await firebase_service.get_last_message_by_customer(shop, user_phone);
   const text_type = get_text_type(last_message.message_content);
   switch (text_type) {
     case "yes": {
-      const customer = await stripe_service.create_customer(user_email, user_phone, payment_method, address);
+      const customer = await stripe_service.create_customer(user_email, user_phone, payment_method, address, shop);
       await firebase_service.store_data(customer, user_phone, payment_method);
       break;
     }
     case "edit": {
       const customer_id = session.customer;
-      const customer = await stripe_service.update_customer(customer_id, address, payment_method, user_phone, user_email);
+      const customer = await stripe_service.update_customer(customer_id, address, payment_method, user_phone, shop);
       await firebase_service.store_data(customer, user_phone, payment_method);
       break;
     }
   }
   // create a confirmed payment intent to charge the customer
   await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids, shop);
-  await stripe_service.confirmPaymentIntent(user_phone);
+  await stripe_service.confirmPaymentIntent(user_phone, shop);
 }
 
 module.exports = {main_control, handlePurchase};

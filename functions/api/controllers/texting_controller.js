@@ -20,7 +20,7 @@ const postSendMessageToMass = async (req, res) => {
       const checkoutStartedAt = selected_people[i].checkout_started_at;
       const cohort = selected_people[i].cohort;
 
-      const productListWithStripeIds = await stripe_service.get_product_ids(productList);
+      const productListWithStripeIds = await stripe_service.get_product_ids(productList, shopDomain);
       const access_token = await firebase_service.get_store_access_token(shopDomain);
       const productsListWithImages = await shopify_service.get_product_images(shopDomain, access_token, productListWithStripeIds);
       // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
@@ -51,7 +51,7 @@ const postTexting = async (req, res) => {
     const personName = req.body.personName || null;
     const productSize = req.body.productSize || null;
     // get the product id
-    const stripe_productId = await stripe_service.get_product_id(productName);
+    const stripe_productId = await stripe_service.get_product_id(productName, shopDomain);
     // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
     await firebase_service.update_current_product(phoneNumber, stripe_productId, shopify_productId);
     await firebase_service.user_enter_conversation(phoneNumber, shopDomain);

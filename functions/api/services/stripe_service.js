@@ -1,7 +1,14 @@
 const firebase_service = require('../services/firebase_service');
-const stripe = require('stripe')('sk_test_51ORH1oCUveDWoBMaDE7JPwXOWNa9CIPQTiaWx3AXG05O9q4I2Ev6jwOP59f4zE1cpH84jC4NEq4aBiMGRHzWJnzM00mJCTwQx5');
+// const stripe = require('stripe')('sk_test_51ORH1oCUveDWoBMaDE7JPwXOWNa9CIPQTiaWx3AXG05O9q4I2Ev6jwOP59f4zE1cpH84jC4NEq4aBiMGRHzWJnzM00mJCTwQx5');
 
-async function get_product_id(productName) {
+function getStripeInstance(secretKey) {
+  const stripe = require('stripe')(secretKey);
+  return stripe;
+}
+
+async function get_product_id(productName, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const products = await stripe.products.search({
     query: `name:'${productName}'`,
   });
@@ -16,8 +23,10 @@ async function get_product_id(productName) {
   return productId;
 }
 
-async function get_product_ids(product_list) {
+async function get_product_ids(product_list, shop) {
   try {
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
     const productsWithIds = [];
 
     for (const product of product_list) {
@@ -49,7 +58,9 @@ async function get_product_ids(product_list) {
 }
 
 
-async function create_customer(email, phone_number, payment_method, address) {
+async function create_customer(email, phone_number, payment_method, address, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const customer = await stripe.customers.create({
     address: {
       city: address.city,
@@ -71,7 +82,9 @@ async function create_customer(email, phone_number, payment_method, address) {
   return customer;
 }
 
-async function update_customer(customer_id, address, payment_method, phone_number, email) {
+async function update_customer(customer_id, address, payment_method, phone_number, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const customer = await stripe.customers.update(
       customer_id,
       {
@@ -101,7 +114,9 @@ async function update_customer(customer_id, address, payment_method, phone_numbe
 //   return prices.data[0];
 // }
 
-async function get_price_objects(product_ids) {
+async function get_price_objects(product_ids, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const priceObjects = [];
 
   for (const product_id of product_ids) {
@@ -117,47 +132,29 @@ async function get_price_objects(product_ids) {
   return priceObjects;
 }
 
-async function get_card_details(payment_method_id) {
+async function get_card_details(payment_method_id, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const paymentMethod = await stripe.paymentMethods.retrieve(
       payment_method_id,
   );
   return paymentMethod;
 }
 
-async function get_customer_address(customer_id) {
+async function get_customer_address(customer_id, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const customer = await stripe.customers.retrieve(
       customer_id,
   );
   return customer;
 }
 
-// async function generatePaymentLink(phoneNumber, product_id) {
-//   try {
-//     const price = await get_price_object(product_id);
-//     const price_id = price.id;
-//     // ToDo: generate a payment link using the price_id of the product
-//     const paymentLink = await stripe.paymentLinks.create({
-//       line_items: [
-//         {
-//           price: price_id,
-//           quantity: 1,
-//         },
-//       ],
-//       metadata: {
-//         phone: phoneNumber,
-//       },
-//       customer_creation: 'always',
-//     });
-//     return paymentLink;
-//   } catch (error) {
-//     console.error("Error generating link:", error.response ? error.response.data : error.message);
-//   }
-// }
-
-async function generatePaymentLink(phoneNumber, product_ids) {
+async function generatePaymentLink(phoneNumber, product_ids, shop) {
   try {
-    // const price = await get_price_object(product_id);
-    const prices = await get_price_objects(product_ids);
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
+    const prices = await get_price_objects(product_ids, shop);
     const data = [];
     for (const price of prices) {
       data.push({
@@ -165,15 +162,7 @@ async function generatePaymentLink(phoneNumber, product_ids) {
         quantity: 1,
       });
     }
-    // const price_id = price.id;
-    // ToDo: generate a payment link using the price_id of the product
     const paymentLink = await stripe.paymentLinks.create({
-      // line_items: [
-      //   {
-      //     price: price_id,
-      //     quantity: 1,
-      //   },
-      // ],
       line_items: data,
       metadata: {
         phone: phoneNumber,
@@ -188,8 +177,9 @@ async function generatePaymentLink(phoneNumber, product_ids) {
 
 async function generateCheckoutSession(phoneNumber, shop) {
   try {
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
     const customer_id = await firebase_service.get_customer_id(phoneNumber);
-    console.log("Customer ID is: ", customer_id);
     let session;
     if (customer_id) {
       session = await stripe.checkout.sessions.create({
@@ -250,9 +240,10 @@ async function generateCheckoutSession(phoneNumber, shop) {
 
 async function generatePaymentIntent(phoneNumber, stripe_product_ids, shop) {
   try {
-    const shop = await firebase_service.get_users_conversation(phoneNumber);
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
     const currency = await firebase_service.get_store_currency(shop);
-    const prices = await get_price_objects(stripe_product_ids);
+    const prices = await get_price_objects(stripe_product_ids, shop);
     let price_amount = 0;
     for (const price of prices) {
       price_amount += price.unit_amount;
@@ -285,8 +276,10 @@ async function generatePaymentIntent(phoneNumber, stripe_product_ids, shop) {
   }
 }
 
-async function confirmPaymentIntent(phoneNumber) {
+async function confirmPaymentIntent(phoneNumber, shop) {
   try {
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
     const user = await firebase_service.get_customer_data(phoneNumber);
     const payment_intent = user.current_payment_intent;
     const payment_id = user.payment_method;
@@ -297,27 +290,33 @@ async function confirmPaymentIntent(phoneNumber) {
         },
     );
     await firebase_service.update_status(phoneNumber, paymentIntent);
-    const shop = await firebase_service.get_users_conversation(phoneNumber);
+    // const shop = await firebase_service.get_users_conversation(phoneNumber);
     await firebase_service.increment_sales(shop, paymentIntent.amount/100, paymentIntent.id);
     return paymentIntent;
   } catch (error) {
-    console.error("Error generating intent:", error.response ? error.response.data : error.message);
+    console.error("Error confirming intent:", error.response ? error.response.data : error.message);
   }
 }
 
-async function deletePaymentIntent(payment_intent_id) {
+async function deletePaymentIntent(payment_intent_id, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   await stripe.paymentIntents.cancel(
       payment_intent_id,
   );
 }
 
-async function get_payment_method(setup_intent) {
+async function get_payment_method(setup_intent, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const setupIntent = await stripe.setupIntents.retrieve(setup_intent);
   const payment_method = setupIntent.payment_method;
   return payment_method;
 }
 
-async function get_customer_id(email) {
+async function get_customer_id(email, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const customers = await stripe.customers.list({
     limit: 1,
     email: email,
@@ -331,7 +330,9 @@ async function get_customer_id(email) {
   return customer_id;
 }
 
-async function get_last_payment_intent(customer_id) {
+async function get_last_payment_intent(customer_id, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const paymentIntents = await stripe.paymentIntents.list({
     limit: 1,
     customer: customer_id,
@@ -343,23 +344,23 @@ async function get_last_payment_intent(customer_id) {
   return paymentIntents.data[0];
 }
 
-async function create_refund(phoneNumber, payment_intent) {
+async function create_refund(phoneNumber, payment_intent, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
   const refund = await stripe.refunds.create({
     payment_intent: payment_intent,
   });
-  const shop = await firebase_service.get_users_conversation(phoneNumber);
-  // await firebase_service.decrement_number_of_sales(shop);
   await firebase_service.refund_sale(shop, refund.payment_intent);
-  // await firebase_service.increment_decrement_sales_volume(shop, refund.amount);
   return refund;
 }
 
-async function createProductAndPrice(productName, shopify_product_id, price, currency) {
+async function createProductAndPrice(productName, shopify_product_id, price, currency, shop) {
   try {
-    // Check if product already exists
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
     let product;
     try {
-      const productId = await get_product_id(productName);
+      const productId = await get_product_id(productName, shop);
       product = await stripe.products.retrieve(productId);
     } catch (error) {
       // If product does not exist, create a new one

@@ -123,12 +123,15 @@ async function save_store_access_token(shop, access_token) {
   const invitation_code = (Math.random().toString(36)+'000000').substring(2, 8);
 
   await stores_ref.set({
-    currency: "usd",
+    stripe_secret_token: "",
+    whatsapp_access_token: "",
+    whatsapp_phone_number_id: "",
+    automatic: true,
+    images_included: true,
+    currency: "eur",
     invitation_code: invitation_code,
     shopify_access_token: access_token,
     shop: shop,
-    restock_message: "Hey {personName}, {productName} you loved is back! Text 'Yes' to claim yours!",
-    refill_message: "Hey {personName}, would you like to buy {productName} again? Text 'Yes' to claim yours!",
     payment_link_message: "Awesome! go here to complete your payment {paymentURL}!",
     payment_confirmation_message: "Awesome! Are you sure you want to pay with your {brand} card ending with {last4} to the address {address}? Say 'Yes' to confirm, or 'Edit' to edit your card details or address. You will be able to cancel in the next 24 hours.",
     success_message: "{payment_status}! Text us 'Cancel' to cancel, only in the next 24 hours.",
@@ -428,6 +431,14 @@ async function get_whatsapp_keys(shop) {
   } else return null;
 }
 
+async function get_stripe_key(shop) {
+  const shop_doc = await db.collection('Shopify Stores').doc(shop).get();
+  const shop_data = shop_doc.data();
+  if (shop_doc.exists) {
+    return shop_data.stripe_secret_token;
+  } else return null;
+}
+
 async function get_cohorts(shop) {
   const cohorts_query = db.collection('Shopify Stores').doc(shop).collection("Cohorts");
   const cohortsSnapshot = await cohorts_query.get();
@@ -465,4 +476,4 @@ async function get_customer_id(phoneNumber) {
   } else return null;
 }
 
-module.exports = {get_product_id, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, get_stripe_key, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
