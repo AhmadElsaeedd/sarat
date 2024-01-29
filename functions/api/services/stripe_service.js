@@ -398,4 +398,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
+module.exports = {getStripeInstance, update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};

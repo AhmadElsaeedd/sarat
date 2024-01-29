@@ -1,8 +1,13 @@
 const main_control_service = require('../services/main_control');
-const stripe = require('stripe')('sk_test_51ORH1oCUveDWoBMaDE7JPwXOWNa9CIPQTiaWx3AXG05O9q4I2Ev6jwOP59f4zE1cpH84jC4NEq4aBiMGRHzWJnzM00mJCTwQx5');
-const endpointSecret = 'whsec_6pijIngHHM6o1qNAPjiKOMra4CJlI7ry';
+const firebase_service = require('../services/firebase_service');
+const stripe_service = require('../services/stripe_service');
 
 async function postStripe(req, res) {
+  const shop = req.body.data.object.metadata.shop;
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const endpointSecret = await firebase_service.get_stripe_endpoint_secret(shop);
+  const stripe = stripe_service.getStripeInstance(secretKey);
+  // Using the shop we can get the
   const sig = req.headers['stripe-signature'];
 
   let event;
