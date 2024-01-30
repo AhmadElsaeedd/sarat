@@ -303,6 +303,7 @@ async function increment_sales(shop, amount, payment_id) {
   await salesRef.set({
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
     amount: amount,
+    refunded: false,
     // Add other relevant data for the sale
   });
 }
