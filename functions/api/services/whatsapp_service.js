@@ -105,7 +105,6 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
         caption: message,
       },
     };
-    console.log("Data is: ", data);
     await firebase_service.increment_conversations(shop, recipientPhone);
     await firebase_service.increment_messages(shop, "You", recipientPhone, message, null);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
