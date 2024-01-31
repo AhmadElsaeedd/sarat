@@ -191,7 +191,7 @@ async function generateCheckoutSession(phoneNumber, shop) {
           shop: shop,
         },
         // Later on replace those urls with the actual urls of the brands.
-        success_url: 'https://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
+        success_url: 'https://wa.me/15550717955',
         shipping_address_collection: {
           allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
         },
@@ -215,7 +215,7 @@ async function generateCheckoutSession(phoneNumber, shop) {
           shop: shop,
         },
         // Later on replace those urls with the actual urls of the brands.
-        success_url: 'https://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
+        success_url: 'https://wa.me/15550717955',
         shipping_address_collection: {
           allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
         },

@@ -98,6 +98,7 @@ async function update_status(phoneNumber, payment_intent) {
   await user_ref.set({
     current_payment_intent: payment_intent.id,
     payment_intent_status: payment_intent.status,
+    payment_intent_client_secret: payment_intent.client_secret,
   }, {merge: true});
 }
 

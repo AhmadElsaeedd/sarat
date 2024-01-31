@@ -113,8 +113,9 @@ async function handlePurchase(session) {
     }
   }
   // create a confirmed payment intent to charge the customer
-  await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids, shop);
-  await stripe_service.confirmPaymentIntent(user_phone, shop);
+  const payment_intent = await stripe_service.generatePaymentIntent(user_phone, stripe_product_ids, shop);
+  await whatsapp_service.sendMessage(user_phone, null, null, null, null, null, null, null, null, payment_intent.payment_method, "payment_confirmation_message");
+  // await stripe_service.confirmPaymentIntent(user_phone, shop);
 }
 
 module.exports = {main_control, handlePurchase};

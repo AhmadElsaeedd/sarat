@@ -82,8 +82,8 @@ async function send_messages(access_token, shop, structured_data) {
   const checkout_started_at = date.toISOString();
 
   const structured_data2 = [{
-    customer_name: "Mawadda", // Replace with your name
-    customer_phone: "971563332351", // Replace with your phone number
+    customer_name: "Ahmed",
+    customer_phone: "201200025500",
     checkout_started_at: checkout_started_at,
     cohort: {
       cohort_id: "Pre-defined 1",
