@@ -62,7 +62,7 @@ async function construct_message(recipientPhone, cohort, reminder, personName, p
   // Get the price
   let price = 0;
   for (const product of product_list) {
-    price += product.price;
+    price += product.price_in_presentment_currency;
   }
   const priceMessage = cohort[`message_price${reminder}`].replace('{price}', price).replace('{currency}', currency);
   message += priceMessage + '\n' + '\n';
@@ -87,11 +87,11 @@ async function construct_message(recipientPhone, cohort, reminder, personName, p
   return message;
 }
 
-async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt) {
+async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt, presentment_currency) {
   try {
     const keys = await firebase_service.get_whatsapp_keys(shop);
     const store_names = await firebase_service.get_store_humanName_brandName(shop);
-    const currency = await firebase_service.get_store_currency(shop);
+    // const currency = await firebase_service.get_store_currency(shop);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
     let reminder;
     if (!last_text_to_customer) {
@@ -99,7 +99,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     } else {
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
-    const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, currency);
+    const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, presentment_currency);
     const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
@@ -187,11 +187,19 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
     }
     case 'payment_confirmation_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
-      const payment_details = await stripe_service.get_card_details(payment_method_id, shop);
-      const customer_id = await firebase_service.get_customer_id(recipientPhone, shop);
+      // const payment_details = await stripe_service.get_card_details(payment_method_id, shop);
+      // const customer_id = await firebase_service.get_customer_id(recipientPhone, shop);
+      // const customer = await stripe_service.get_customer_address(customer_id, shop);
+      // const currency = await firebase_service.get_store_currency(shop);
+      // const price = await firebase_service.get_price_for_confirmation(recipientPhone);
+      const [payment_details, customer_id, currency, price] = await Promise.all([
+        stripe_service.get_card_details(payment_method_id, shop),
+        firebase_service.get_customer_id(recipientPhone, shop),
+        firebase_service.get_store_currency(shop),
+        firebase_service.get_price_for_confirmation(recipientPhone),
+      ]);
+
       const customer = await stripe_service.get_customer_address(customer_id, shop);
-      const currency = await firebase_service.get_store_currency(shop);
-      const price = await firebase_service.get_price_for_confirmation(recipientPhone);
       return create_confirmation_message(payment_details, customer.address, messageTemplate, price, currency);
     }
     case 'success_message': {

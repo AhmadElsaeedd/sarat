@@ -57,7 +57,7 @@ async function get_price_for_confirmation(userPhone) {
       const discount_amount = user_doc.data().current_discount_amount;
       let price_amount = 0;
       for (const product of product_list) {
-        price_amount += product.price;
+        price_amount += product.price_in_presentment_currency;
       }
       if (discount_amount && discount_amount > 0) {
         price_amount = price_amount * (100-discount_amount)/100;

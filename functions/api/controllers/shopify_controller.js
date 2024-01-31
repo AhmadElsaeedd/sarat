@@ -95,6 +95,7 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
 
     // I don't think we should return anything here, we could just return success
     res.status(200).send('Abandoned Carts Flow Done!');
+    // res.status(200).send(structured_data);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCartsFlow:", error);
     res.status(500).send('Internal Server Error');
