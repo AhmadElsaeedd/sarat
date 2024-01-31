@@ -1,6 +1,7 @@
 const axios = require('axios');
+// const stripe_service = require('../services/stripe_service');
 
-async function get_customers_and_line_items(checkouts_array) {
+async function get_customers_and_line_items(checkouts_array, shop) {
   const structured_customers = [];
 
   for (const checkout of checkouts_array) {
@@ -16,11 +17,17 @@ async function get_customers_and_line_items(checkouts_array) {
 
     const cohort = checkout.cohort;
 
-    const product_list = checkout.line_items.map((item) => ({
-      product_id: item.product_id,
-      product_name: item.title,
-      variant_title: item.variant_title,
-    }));
+    const product_list = await Promise.all(
+        checkout.line_items.map(async (item) => {
+          // const price = await stripe_service.get_price(item.product_id, shop);
+          return {
+            product_id: item.product_id,
+            product_name: item.title,
+            variant_title: item.variant_title,
+            // additional_info: price.unit_amount,
+          };
+        }),
+    );
 
     const checkout_started_at = checkout.created_at;
 
@@ -38,8 +45,8 @@ async function get_customers_and_line_items(checkouts_array) {
 }
 
 
-async function structure_data_for_messaging(checkouts_with_cohorts) {
-  const structured_data = await get_customers_and_line_items(checkouts_with_cohorts);
+async function structure_data_for_messaging(checkouts_with_cohorts, shop) {
+  const structured_data = await get_customers_and_line_items(checkouts_with_cohorts, shop);
 
   return structured_data;
 }
@@ -121,6 +128,7 @@ async function send_messages(access_token, shop, structured_data) {
   }];
   const body = {
     selectedPeople: structured_data2,
+    // selectedPeople: structured_data,
     shop: shop,
 
   };

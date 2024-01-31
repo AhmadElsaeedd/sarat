@@ -57,6 +57,40 @@ async function get_product_ids(product_list, shop) {
   }
 }
 
+async function get_product_prices(product_list, shop) {
+  try {
+    const secretKey = await firebase_service.get_stripe_key(shop);
+    const stripe = getStripeInstance(secretKey);
+    const productsWithPrices = [];
+
+    for (const product of product_list) {
+      const stripe_product_id = product.stripe_product_id;
+      const prices = await stripe.prices.list({product: stripe_product_id});
+
+      if (prices.data.length > 0) {
+        const unit_amount = prices.data[0].unit_amount;
+        const currency = prices.data[0].currency;
+        let price;
+        if (currency === 'jpy') {
+          price = unit_amount; // For Japanese Yen, no need to divide
+        } else {
+          price = unit_amount / 100; // For most other currencies, divide by 100
+        }
+        product.price = price;
+        productsWithPrices.push(product);
+      } else {
+        // Handle the case where a product is not found
+        console.error(`Price not found: ${product.product_name}`);
+      }
+    }
+
+    return productsWithPrices;
+  } catch (error) {
+    console.error("Error in get_product_prices:", error);
+    throw error; // Rethrow the error to handle it in the calling function
+  }
+}
+
 
 async function create_customer(email, phone_number, payment_method, address, shop) {
   const secretKey = await firebase_service.get_stripe_key(shop);
@@ -108,6 +142,18 @@ async function update_customer(customer_id, address, payment_method, phone_numbe
   return customer;
 }
 
+async function get_price(product_id, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
+  let prices;
+  try {
+    prices = await stripe.prices.list({product: product_id});
+  } catch (error) {
+    console.error(`Error getting price for product ${product_id}:`, error);
+  }
+  return prices.data[0];
+}
+
 async function get_price_objects(product_ids, shop, currency) {
   const secretKey = await firebase_service.get_stripe_key(shop);
   const stripe = getStripeInstance(secretKey);
@@ -119,7 +165,6 @@ async function get_price_objects(product_ids, shop, currency) {
       priceObjects.push(prices.data[0]);
     } catch (error) {
       console.error(`Error getting price for product ${product_id}:`, error);
-      // Depending on your use case, you might want to throw the error, return a partial result, or just continue
     }
   }
 
@@ -401,4 +446,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {getStripeInstance, update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
+module.exports = {getStripeInstance, get_product_prices, get_price, update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};

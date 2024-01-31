@@ -21,8 +21,9 @@ const postSendMessageToMass = async (req, res) => {
       const cohort = selected_people[i].cohort;
 
       const productListWithStripeIds = await stripe_service.get_product_ids(productList, shopDomain);
+      const productListWithPrices = await stripe_service.get_product_prices(productListWithStripeIds, shopDomain);
       const access_token = await firebase_service.get_store_access_token(shopDomain);
-      const productsListWithImages = await shopify_service.get_product_images(shopDomain, access_token, productListWithStripeIds);
+      const productsListWithImages = await shopify_service.get_product_images(shopDomain, access_token, productListWithPrices);
       // Update the document to be able to track what's happening with product id and the shop that the user is conversing with
       await firebase_service.start_conversation(phoneNumber, shopDomain, productsListWithImages);
       await whatsapp_service.sendMessageToCohortCustomer(shopDomain, phoneNumber, personName, cohort, productsListWithImages, checkoutStartedAt);

@@ -88,7 +88,7 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
 
     // Get the data that we need from the above array
     // We need: shopify_productNames (array), shopify_productIds (array), phoneNumber, customer name
-    const structured_data = await cohort_service.structure_data_for_messaging(abandoned_checkouts_with_cohorts);
+    const structured_data = await cohort_service.structure_data_for_messaging(abandoned_checkouts_with_cohorts, shop);
 
     // Based on each customer's cohort and the time that they're in, send them the message that they should receive
     await cohort_service.send_messages(access_token, shop, structured_data);
