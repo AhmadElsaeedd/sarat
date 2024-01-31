@@ -48,6 +48,28 @@ async function get_product_ids(userPhone) {
   }
 }
 
+async function get_price_for_confirmation(userPhone) {
+  try {
+    const user_doc = await db.collection('Customers').doc(userPhone).get();
+
+    if (user_doc.exists) {
+      const product_list = user_doc.data().current_product_list;
+      const discount_amount = user_doc.data().current_discount_amount;
+      let price_amount = 0;
+      for (const product of product_list) {
+        price_amount += product.price;
+      }
+      if (discount_amount && discount_amount > 0) {
+        price_amount = price_amount * (100-discount_amount)/100;
+      }
+      return price_amount;
+    }
+  } catch (error) {
+    console.error("Error in getting product id: ", error);
+    throw error;
+  }
+}
+
 
 async function update_current_product(phoneNumber, product_list) {
   const user_ref = db.collection('Customers').doc(phoneNumber);
@@ -545,4 +567,4 @@ async function does_message_exist(shop, messageId) {
   return !snapshot.empty;
 }
 
-module.exports = {get_product_id, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

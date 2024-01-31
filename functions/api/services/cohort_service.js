@@ -109,6 +109,8 @@ async function send_messages(access_token, shop, structured_data) {
       message_close2: "Just reply \"Yes\" and I'll help you checkout now!🚀",
       message_opener1: "Hey {personName},👋 I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
       message_opener2: "Hey {personName},👋 I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
+      message_price1: "Total price is {currency}{price}",
+      message_price2: "Total price is {currency}{price}",
       product_list1: "{productName} {variantTitle}",
       product_list2: "{productName} {variantTitle}",
       purchase_frequency: ["first_time", "returning"],

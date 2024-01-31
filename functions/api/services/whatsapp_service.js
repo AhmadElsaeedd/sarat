@@ -47,7 +47,7 @@ function first_or_second_reminder_without_last_text(cohort, checkout_started_at)
   return null;
 }
 
-async function construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names) {
+async function construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, currency) {
   let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
 
   // Construct the product list string
@@ -58,6 +58,14 @@ async function construct_message(recipientPhone, cohort, reminder, personName, p
   ).join('\n');
 
   message += productListString + '\n'+ '\n';
+
+  // Get the price
+  let price = 0;
+  for (const product of product_list) {
+    price += product.price;
+  }
+  const priceMessage = cohort[`message_price${reminder}`].replace('{price}', price).replace('{currency}', currency);
+  message += priceMessage + '\n' + '\n';
 
   // Add discount message if applicable
   if ((Number(reminder) === 1 && cohort.discount_in_first) || (Number(reminder) === 2 && cohort.discount_in_second)) {
@@ -83,6 +91,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
   try {
     const keys = await firebase_service.get_whatsapp_keys(shop);
     const store_names = await firebase_service.get_store_humanName_brandName(shop);
+    const currency = await firebase_service.get_store_currency(shop);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
     let reminder;
     if (!last_text_to_customer) {
@@ -90,7 +99,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     } else {
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
-    const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names);
+    const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, currency);
     const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
@@ -181,7 +190,9 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
       const payment_details = await stripe_service.get_card_details(payment_method_id, shop);
       const customer_id = await firebase_service.get_customer_id(recipientPhone, shop);
       const customer = await stripe_service.get_customer_address(customer_id, shop);
-      return create_confirmation_message(payment_details, customer.address, messageTemplate);
+      const currency = await firebase_service.get_store_currency(shop);
+      const price = await firebase_service.get_price_for_confirmation(recipientPhone);
+      return create_confirmation_message(payment_details, customer.address, messageTemplate, price, currency);
     }
     case 'success_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Successful Payment");
@@ -218,7 +229,7 @@ function create_payment_link_message(paymentURL, message_template) {
   return message;
 }
 
-function create_confirmation_message(card_details, address_details, message_template) {
+function create_confirmation_message(card_details, address_details, message_template, price, currency) {
   const brand = card_details.card.brand;
   const capitalizedBrand = brand.charAt(0).toUpperCase() + brand.slice(1);
   const last4 = card_details.card.last4;
@@ -227,6 +238,8 @@ function create_confirmation_message(card_details, address_details, message_temp
       .replace('{brand}', capitalizedBrand)
       .replace('{last4}', last4)
       .replace('{address}', address)
+      .replace('{price}', price)
+      .replace('{currency}', currency)
       .replace(/\\n/g, '\n');
   return message;
 }
