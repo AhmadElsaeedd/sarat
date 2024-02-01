@@ -29,11 +29,11 @@ const handleAuthenticationCallback = async (req, res) => {
 
   try {
     const response = await axios.post(accessTokenRequestUrl, accessTokenPayload);
-    console.log("Response is: ", response.data);
     const accessToken = response.data.access_token;
-    // TODO: Save the access token to your database associated with the shop
+    const shopData = await shopify_service.get_store_configuration(shop, accessToken);
     console.log(`Access token for shop ${shop} is ${accessToken}`);
-    await firebase_service.save_store_access_token(shop, accessToken);
+    console.log("Shop data is: ", shopData);
+    await firebase_service.save_store_data(shop, accessToken, shopData);
 
     // Redirect the user to your app with the token or set the token in session
     const redirectUrl = 'https://textlet0.retool.com/apps/4f1c9cfc-aaf6-11ee-8409-77d5b96375e9/Authentication%20flow';

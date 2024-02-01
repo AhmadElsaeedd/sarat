@@ -163,65 +163,32 @@ async function save_store_access_token(shop, access_token) {
     success_message: "{payment_status}! \n \n Say 'Cancel' to cancel, only in the next 24 hours.",
     refund_message: "{refund_status}. \n \n Your payment has been canceled and the amount will be refunded to your card.",
   }, {merge: true});
+}
 
-  const firstCohortDocument = {
-    cart_value: [100, 300],
-    cohort_id: "Pre-defined 1",
-    cohort_type: "Pre-defined",
-    cohort_number: 1,
-    date_created: admin.firestore.FieldValue.serverTimestamp(),
-    discount_amount_in_1: 0,
-    discount_amount_in_2: 10,
-    discount_in_first: false,
-    discount_in_second: true,
-    discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
-    discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
-    first_reminder_active: true,
-    first_reminder_time: 1,
-    items_in_cart: [0, 10],
-    message_close1: "Just text \"Yes\" and I'll help you checkout now!",
-    message_close2: "Just text \"Yes\" and I'll help you checkout now!",
-    message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-    message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-    product_list1: "{productName} {variantTitle}",
-    product_list2: "{productName} {variantTitle}",
-    purchase_frequency: ["first_time", "returning"],
-    second_reminder_active: true,
-    second_reminder_time: 6,
-  };
+async function save_store_data(shop, access_token, shop_data) {
+  const stores_ref =db.collection('Shopify Stores').doc(shop);
 
-  // Define the contents of the second document
-  const secondCohortDocument = {
-    cart_value: [300, 0],
-    cohort_id: "Pre-defined 2",
-    cohort_type: "Pre-defined",
-    cohort_number: 2,
-    date_created: admin.firestore.FieldValue.serverTimestamp(),
-    discount_amount_in_1: 0,
-    discount_amount_in_2: 15,
-    discount_in_first: false,
-    discount_in_second: true,
-    discount_message1: "I can give you a {discountAmount}% discount if you complete your purchase now.",
-    discount_message2: "I can give you a {discountAmount}% discount if you complete your purchase now.",
-    first_reminder_active: true,
-    first_reminder_time: 2,
-    items_in_cart: [0, 10],
-    message_close1: "Just text \"Yes\" and I'll help you checkout now!",
-    message_close2: "Just text \"Yes\" and I'll help you checkout now!",
-    message_opener1: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-    message_opener2: "Hey {personName}, I am {humanName} from {brandName}. I noticed that you left your cart without checking out. I can help you checkout here easily and quickly! Your cart contained:",
-    product_list1: "{productName} {variantTitle}",
-    product_list2: "{productName} {variantTitle}",
-    purchase_frequency: ["first_time"],
-    second_reminder_active: true,
-    second_reminder_time: 8,
-  };
+  // Generate a 4 character invitation code using lowercase characters and numbers
+  const invitation_code = (Math.random().toString(36)+'000000').substring(2, 8);
 
-  // Add the first cohort document to the subcollection
-  await stores_ref.collection('Cohorts').doc("Pre-defined 1").set(firstCohortDocument);
-
-  // Add the second cohort document to the subcollection
-  await stores_ref.collection('Cohorts').doc("Pre-defined 2").set(secondCohortDocument);
+  await stores_ref.set({
+    brand_name: shop_data.name,
+    human_name: shop_data.shop_owner,
+    stripe_secret_token: "",
+    stripe_endpoint_secret: "",
+    whatsapp_access_token: "",
+    whatsapp_phone_number_id: "",
+    automatic: true,
+    images_included: true,
+    currency: shop_data.currency,
+    invitation_code: invitation_code,
+    shopify_access_token: access_token,
+    shop: shop,
+    payment_link_message: "Perfect! You can reserve your item(s) by entering your details here now: \n \n{paymentURL}!",
+    payment_confirmation_message: "Awesome! Just to confirm: \n \n💳 {brand} card ending with {last4} \n🏡{address} \n💰{price}{currency} \n \nJust say 'Yes' to confirm, or 'Edit' to edit your card details or address. You'll be able to cancel in the next 24 hours.",
+    success_message: "{payment_status}! \nText us 'Cancel' to cancel, only in the next 24 hours.",
+    refund_message: "{refund_status}. \n \n Your payment has been canceled and the amount will be refunded to your card.",
+  }, {merge: true});
 }
 
 async function get_store_access_token(shop) {
@@ -567,4 +534,4 @@ async function does_message_exist(shop, messageId) {
   return !snapshot.empty;
 }
 
-module.exports = {get_product_id, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
