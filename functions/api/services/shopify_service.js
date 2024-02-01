@@ -88,6 +88,32 @@ async function get_abandoned_orders(shop, access_token) {
   }
 }
 
+async function get_last_orders_of_customers_who_have_abandoned_checkouts(shop, access_token, abandoned_carts_without_last_order) {
+  // Filter out carts where last_order_id is not null
+  const cartsWithLastOrder = abandoned_carts_without_last_order.filter((cart) => cart.customer && cart.customer.last_order_id !== null);
+  // Extract the last_order_id from each cart
+  const lastOrderIds = cartsWithLastOrder.map((cart) => cart.customer.last_order_id);
+
+  // Convert the array of lastOrderIds into a comma-separated string
+  const lastOrderIdsString = lastOrderIds.join(',');
+
+  const url = `https://${shop}/admin/api/2023-10/orders.json?ids=${lastOrderIdsString}&limit=250`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+      },
+    });
+
+    // this is an array of orders
+    return response.data.orders;
+  } catch (error) {
+    console.error('Error fetching orders of people who have abandoned carts:', error);
+    throw error;
+  }
+}
+
 async function get_abandoned_orders_first_reminder(shop, access_token) {
   const url = `https://${shop}/admin/api/2023-10/checkouts.json?limit=250`;
 
@@ -626,4 +652,4 @@ async function subscribe_to_checkout_creation(shop, access_token) {
   console.log(response.data);
 }
 
-module.exports = {get_abandoned_orders, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};
+module.exports = {get_abandoned_orders, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};

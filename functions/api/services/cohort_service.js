@@ -84,6 +84,22 @@ function determineCohort(checkout, cohorts) {
   return cohort || null;
 }
 
+async function combine_orders_with_abandoned_checkouts(abandoned_checkouts, orders) {
+  for (const checkout of abandoned_checkouts) {
+    // Find the order that matches the customer's last_order_id
+    const matchingOrder = orders.find((order) => order.id === checkout.customer.last_order_id);
+
+    // If a matching order is found, add its created_at field to the customer object
+    if (matchingOrder) {
+      checkout.customer.last_order_date = matchingOrder.created_at;
+    }
+  }
+
+  // Now each checkout's customer object has a new field last_order_date
+  // which is the created_at field of the order that matches the customer's last_order_id
+  return abandoned_checkouts;
+}
+
 async function send_messages(access_token, shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
 
@@ -144,4 +160,4 @@ async function send_messages(access_token, shop, structured_data) {
   return response;
 }
 
-module.exports = {get_customers_with_cohorts, structure_data_for_messaging, send_messages};
+module.exports = {get_customers_with_cohorts, structure_data_for_messaging, send_messages, combine_orders_with_abandoned_checkouts};

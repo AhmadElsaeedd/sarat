@@ -83,11 +83,18 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
     // Gets all abandoned checkouts that haven't been completed
     const abandoned_uncompleted_checkouts = await shopify_service.get_abandoned_orders(shop, access_token);
 
+    // Get all the last orders made by the customers (if they have ordered before)
+    const orders = await shopify_service.get_last_orders_of_customers_who_have_abandoned_checkouts(shop, access_token, abandoned_uncompleted_checkouts);
+
+    // Now combine the "orders" array with the abandoned checkout and assign the .created_at property of it to last_order_date in the customer of the abandoned checkout
+    const abandoned_checkouts_with_last_order = await cohort_service.combine_orders_with_abandoned_checkouts(abandoned_uncompleted_checkouts, orders);
+    // Give this variable in the get_customers_with_cohorts function instead of the variable before
+
     // Get all the cohorts in the brand
     const cohorts = await firebase_service.get_cohorts(shop);
 
     // Assign each checkout to a cohort and get all the needed details with also first reminder/second reminder
-    const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_uncompleted_checkouts, cohorts);
+    const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_checkouts_with_last_order, cohorts);
 
     // Get the data that we need from the above array
     // We need: shopify_productNames (array), shopify_productIds (array), phoneNumber, customer name
