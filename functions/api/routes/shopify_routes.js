@@ -12,6 +12,7 @@ router.post('/GetProduct', express.json(), shopify_controller.postGetProductByID
 router.post('/GetRefillCustomers', express.json(), shopify_controller.postShopifyRefillCustomers);
 router.post('/OnboardBrand', express.json(), shopify_controller.postShopifyOnboardBrand);
 router.post('/GetAllCustomers', express.json(), shopify_controller.postShopifyAllCustomers);
+router.post('/CartCreatedWebhook', express.json(), shopify_controller.postCartCreatedWebhook);
 router.get('/auth', express.json(), shopify_controller.handleAuthentication);
 router.get('/auth/callback', express.json(), shopify_controller.handleAuthenticationCallback);
 

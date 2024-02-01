@@ -3,6 +3,7 @@ const firebase_service = require('../services/firebase_service');
 const shopify_service = require('../services/shopify_service');
 const stripe_service = require('../services/stripe_service');
 const cohort_service = require('../services/cohort_service');
+// const {access} = require('fs');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
 const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products';
@@ -34,6 +35,7 @@ const handleAuthenticationCallback = async (req, res) => {
     console.log(`Access token for shop ${shop} is ${accessToken}`);
     console.log("Shop data is: ", shopData);
     await firebase_service.save_store_data(shop, accessToken, shopData);
+    await shopify_service.subscribe_to_webhooks(shop, accessToken);
 
     // Redirect the user to your app with the token or set the token in session
     const redirectUrl = 'https://textlet0.retool.com/apps/4f1c9cfc-aaf6-11ee-8409-77d5b96375e9/Authentication%20flow';
@@ -98,6 +100,24 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
     // res.status(200).send(structured_data);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCartsFlow:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postCartCreatedWebhook = async (req, res) => {
+  try {
+    // This endpoint will receive cart creation events from the webhook and store them as is in our firestore
+    // Cart has been created, intercept the payload
+    const payload = req.body;
+    const shopDomain = req.get('X-Shopify-Shop-Domain'); // This gets the Shopify shop domain
+
+    await firebase_service.set_new_cart(shopDomain, payload);
+
+    console.log(`Webhook received from: ${shopDomain}`);
+
+    res.status(200).send('Cart creation webhook payload received');
+  } catch (error) {
+    console.error("Error in postCartCreatedWebhook:", error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -217,4 +237,4 @@ const postShopifyAllCustomers = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow};
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow};
