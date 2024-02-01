@@ -70,6 +70,12 @@ function determineCohort(checkout, cohorts) {
   // Determine if the customer is a first time or returning customer
   const customerType = checkout.customer.orders_count === 0 ? 'first_time' : 'returning';
 
+  // Calculate the number of days since the last order
+  const lastOrderDate = new Date(checkout.customer.last_order_date);
+  const now = new Date();
+  const diffInTime = now.getTime() - lastOrderDate.getTime();
+  const diffInDays = diffInTime / (1000 * 3600 * 24);
+
   // Find the cohort that matches the customer type, cart value, and number of items in cart
   const cohort = cohorts.find((cohort) => {
     const purchaseFrequencyIncludesCustomer = cohort.purchase_frequency.includes(customerType);
@@ -77,7 +83,8 @@ function determineCohort(checkout, cohorts) {
                                        (cohort.cart_value[1] === undefined || checkout.total_price <= cohort.cart_value[1]);
     const itemsInCartIsWithinRange = (cohort.items_in_cart[0] === undefined || checkout.line_items.length >= cohort.items_in_cart[0]) &&
                                          (cohort.items_in_cart[1] === undefined || checkout.line_items.length <= cohort.items_in_cart[1]);
-    return purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange;
+    const lastOrderIntervalMatches = cohort.last_order_interval === undefined || cohort.last_order_interval <= diffInDays;
+    return purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange && lastOrderIntervalMatches;
   });
 
   // If no cohort matches, you might want to handle this case differently
