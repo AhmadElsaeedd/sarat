@@ -31,6 +31,8 @@ async function main_control(userPhone, message, message_id) {
         if (!returning_user) {
           // First time user
           const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
+          // Send the brand name into the request instead and create a url of the brand name 21stitches.co/checkout/uniqueid
+          // the unique id is the firebase document's .id field, find its url inside
           await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
         } else {
         // Returning user

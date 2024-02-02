@@ -68,10 +68,8 @@ async function get_customers_with_cohorts(abandoned_checkouts, cohorts) {
 
 async function convertToDefaultCurrency(amount, fromCurrency, toCurrency) {
   try {
-    // Replace 'YOUR_API_KEY' with your actual API key
-    const response = await axios.get(`https://v6.exchangerate-api.com/v6/3c80aab809182f87cee1f7f9/latest/${fromCurrency}`);
-    const rate = response.data.rates[toCurrency];
-    return amount * rate;
+    const response = await axios.get(`https://v6.exchangerate-api.com/v6/3c80aab809182f87cee1f7f9/pair/${fromCurrency}/${toCurrency}/${amount}`);
+    return response.data.conversion_result;
   } catch (error) {
     console.error(`Error: ${error}`);
   }

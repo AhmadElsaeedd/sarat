@@ -182,8 +182,9 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
       return create_refill_message(productName, personName, messageTemplate);
     }
     case 'payment_link_message': {
+      const shop_domain = await firebase_service.get_store_brand_domain(shop);
       await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
-      return create_payment_link_message(paymentURL, messageTemplate);
+      return create_payment_link_message(paymentURL, messageTemplate, shop_domain);
     }
     case 'payment_confirmation_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
@@ -232,7 +233,10 @@ function create_refill_message(productName, personName = null, messageTemplate) 
   return message;
 }
 
-function create_payment_link_message(paymentURL, message_template) {
+function create_payment_link_message(paymentURL, message_template, shopUrl) {
+  // shopUrl is the url that I want to replace {paymentURL} with but when the url is clicked i want it to redirect to paymentURL
+  // const anchorTag = `<a href="${paymentURL}">${shopUrl}</a>`;
+  // const message = message_template.replace('{paymentURL}', anchorTag).replace(/\\n/g, '\n');
   const message = message_template.replace('{paymentURL}', paymentURL).replace(/\\n/g, '\n');
   return message;
 }
