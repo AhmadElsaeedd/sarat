@@ -55,9 +55,9 @@ async function structure_data_for_messaging(checkouts_with_cohorts, shop) {
 }
 
 async function get_customers_with_cohorts(abandoned_checkouts, cohorts) {
-  return abandoned_checkouts.map((abandoned_checkout) => {
+  return abandoned_checkouts.map(async (abandoned_checkout) =>{
     // Determine the cohort for this checkout based on your conditions
-    const cohort = determineCohort(abandoned_checkout, cohorts);
+    const cohort = await determineCohort(abandoned_checkout, cohorts);
 
     // Assign the cohort to the checkout
     abandoned_checkout.cohort = cohort;
@@ -66,7 +66,18 @@ async function get_customers_with_cohorts(abandoned_checkouts, cohorts) {
   });
 }
 
-function determineCohort(checkout, cohorts) {
+async function convertToDefaultCurrency(amount, fromCurrency, toCurrency) {
+  try {
+    // Replace 'YOUR_API_KEY' with your actual API key
+    const response = await axios.get(`https://v6.exchangerate-api.com/v6/3c80aab809182f87cee1f7f9/latest/${fromCurrency}`);
+    const rate = response.data.rates[toCurrency];
+    return amount * rate;
+  } catch (error) {
+    console.error(`Error: ${error}`);
+  }
+}
+
+async function determineCohort(checkout, cohorts) {
   // Determine if the customer is a first time or returning customer
   const customerType = checkout.customer.orders_count === 0 ? 'first_time' : 'returning';
 
@@ -79,13 +90,20 @@ function determineCohort(checkout, cohorts) {
     diffInDays = diffInTime / (1000 * 3600 * 24);
   }
 
+  let totalPriceInDefaultCurrency;
+  if (checkout.presentment_currency != checkout.currency) {
+    totalPriceInDefaultCurrency = await convertToDefaultCurrency(checkout.total_price, checkout.presentment_currency, checkout.currency);
+  } else {
+    totalPriceInDefaultCurrency = checkout.total_price;
+  }
+
   // Find the cohort that matches the customer type, cart value, and number of items in cart
   const cohort = cohorts.find((cohort) => {
     const purchaseFrequencyIncludesCustomer = cohort.purchase_frequency.includes(customerType);
-    const cartValueIsWithinRange = (cohort.cart_value[0] === undefined || checkout.total_price >= cohort.cart_value[0]) &&
-                                       (cohort.cart_value[1] === undefined || checkout.total_price <= cohort.cart_value[1]);
-    const itemsInCartIsWithinRange = (cohort.items_in_cart[0] === undefined || checkout.line_items.length >= cohort.items_in_cart[0]) &&
-                                         (cohort.items_in_cart[1] === undefined || checkout.line_items.length <= cohort.items_in_cart[1]);
+    const cartValueIsWithinRange = (cohort.cart_value[0] === undefined || cohort.cart_value[0] === 0 || totalPriceInDefaultCurrency >= cohort.cart_value[0]) &&
+                                       (cohort.cart_value[1] === undefined || cohort.cart_value[1] === 0 || totalPriceInDefaultCurrency <= cohort.cart_value[1]);
+    const itemsInCartIsWithinRange = (cohort.items_in_cart[0] === undefined || cohort.items_in_cart[0] === 0 || checkout.line_items.length >= cohort.items_in_cart[0]) &&
+                                         (cohort.items_in_cart[1] === undefined || cohort.items_in_cart[1] === 0 || checkout.line_items.length <= cohort.items_in_cart[1]);
     const lastOrderIntervalMatches = diffInDays === 0 || cohort.last_order_interval === undefined || cohort.last_order_interval <= diffInDays;
     return purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange && lastOrderIntervalMatches;
   });
