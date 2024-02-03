@@ -6,7 +6,7 @@ async function get_customers_and_line_items(checkouts_array, shop) {
 
   for (const checkout of checkouts_array) {
     let customer_phone_number;
-    if (!checkout.customer.phone && !(checkout.customer.default_address && checkout.customer.default_address.phone)) {
+    if (!checkout.customer || !checkout.customer.phone && !(checkout.customer.default_address && checkout.customer.default_address.phone)) {
       customer_phone_number = null;
     } else {
       customer_phone_number = checkout.customer.phone || checkout.customer.default_address.phone;
@@ -55,15 +55,19 @@ async function structure_data_for_messaging(checkouts_with_cohorts, shop) {
 }
 
 async function get_customers_with_cohorts(abandoned_checkouts, cohorts) {
-  return abandoned_checkouts.map(async (abandoned_checkout) =>{
-    // Determine the cohort for this checkout based on your conditions
-    const cohort = await determineCohort(abandoned_checkout, cohorts);
+  const checkoutsWithCohorts = await Promise.all(
+      abandoned_checkouts.map(async (abandoned_checkout) =>{
+      // Determine the cohort for this checkout based on your conditions
+        const cohort = await determineCohort(abandoned_checkout, cohorts);
 
-    // Assign the cohort to the checkout
-    abandoned_checkout.cohort = cohort;
+        // Assign the cohort to the checkout
+        abandoned_checkout.cohort = cohort;
 
-    return abandoned_checkout;
-  });
+        return abandoned_checkout;
+      }),
+  );
+
+  return checkoutsWithCohorts;
 }
 
 async function convertToDefaultCurrency(amount, fromCurrency, toCurrency) {
