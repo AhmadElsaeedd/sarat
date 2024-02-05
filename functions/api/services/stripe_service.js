@@ -335,7 +335,7 @@ async function confirmPaymentIntent(phoneNumber, shop) {
     );
     await firebase_service.update_status(phoneNumber, paymentIntent);
     await firebase_service.use_discount(phoneNumber);
-    await firebase_service.increment_sales(shop, paymentIntent.amount/100, paymentIntent.id);
+    await firebase_service.increment_sales(shop, paymentIntent.amount/100, paymentIntent.id, user);
     return paymentIntent;
   } catch (error) {
     console.error("Error confirming intent:", error.response ? error.response.data : error.message);

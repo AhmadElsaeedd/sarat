@@ -3,14 +3,15 @@ if (document.readyState === 'loading') {
         console.log('Hello from Shopify App!');
         // Create a new div element as a container
         var div = document.createElement('div');
-        div.style.position = "fixed";
-        div.style.bottom = "20px";
-        div.style.right = "20px";
-        div.style.backgroundColor = "white";
-        div.style.padding = "20px";
-        div.style.borderRadius = "10px";
-        div.style.width = "300px";
-        div.style.boxShadow = "0px 0px 10px rgba(0,0,0,0.5)";
+div.style.position = "fixed";
+div.style.bottom = "20px";
+div.style.right = "20px";
+div.style.backgroundColor = "white";
+div.style.padding = "20px";
+div.style.borderRadius = "10px";
+div.style.width = "300px";
+div.style.boxShadow = "0px 0px 10px rgba(0,0,0,0.5)";
+div.style.zIndex = "1000"; // Add this line
 
         // Add animation
         div.style.animation = "updown 2s infinite";
@@ -115,14 +116,15 @@ div.appendChild(closeButton);
     // Similar to the above, create and append elements here
             // Create a new div element as a container
             var div = document.createElement('div');
-            div.style.position = "fixed";
-            div.style.bottom = "20px";
-            div.style.right = "20px";
-            div.style.backgroundColor = "white";
-            div.style.padding = "20px";
-            div.style.borderRadius = "10px";
-            div.style.width = "300px";
-            div.style.boxShadow = "0px 0px 10px rgba(0,0,0,0.5)";
+div.style.position = "fixed";
+div.style.bottom = "20px";
+div.style.right = "20px";
+div.style.backgroundColor = "white";
+div.style.padding = "20px";
+div.style.borderRadius = "10px";
+div.style.width = "300px";
+div.style.boxShadow = "0px 0px 10px rgba(0,0,0,0.5)";
+div.style.zIndex = "1000"; // Add this line
     
             // Add animation
             div.style.animation = "updown 2s infinite";

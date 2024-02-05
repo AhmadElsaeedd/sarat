@@ -6,7 +6,7 @@ const cohort_service = require('../services/cohort_service');
 // const {access} = require('fs');
 const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
 const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
-const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products';
+const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products,read_script_tags, write_script_tags';
 const redirectUri = 'https://us-central1-textlet-test.cloudfunctions.net/webhook/shopify/auth/callback';
 
 const handleAuthentication = async (req, res) => {
@@ -37,6 +37,7 @@ const handleAuthenticationCallback = async (req, res) => {
     await firebase_service.save_store_data(shop, accessToken, shopData);
     await shopify_service.subscribe_to_cart_creation(shop, accessToken);
     await shopify_service.subscribe_to_checkout_creation(shop, accessToken);
+    await shopify_service.attach_script(shop, accessToken);
 
     // Redirect the user to your app with the token or set the token in session
     const redirectUrl = 'https://textlet0.retool.com/apps/4f1c9cfc-aaf6-11ee-8409-77d5b96375e9/Authentication%20flow';

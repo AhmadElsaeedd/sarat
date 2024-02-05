@@ -139,32 +139,6 @@ async function store_data(customer, phoneNumber, payment_method) {
   }, {merge: true});
 }
 
-async function save_store_access_token(shop, access_token) {
-  const stores_ref =db.collection('Shopify Stores').doc(shop);
-
-  // Generate a 4 character invitation code using lowercase characters and numbers
-  const invitation_code = (Math.random().toString(36)+'000000').substring(2, 8);
-
-  await stores_ref.set({
-    brand_name: "",
-    human_name: "",
-    stripe_secret_token: "",
-    stripe_endpoint_secret: "",
-    whatsapp_access_token: "",
-    whatsapp_phone_number_id: "",
-    automatic: true,
-    images_included: true,
-    currency: "eur",
-    invitation_code: invitation_code,
-    shopify_access_token: access_token,
-    shop: shop,
-    payment_link_message: "Awesome! go here to complete your payment: \n \n {paymentURL}!",
-    payment_confirmation_message: "Awesome! Just to confirm: \n \n 💳 {brand} card ending with {last4} \n \n 🏡{address}? \n \n Just say 'Yes' to confirm, or 'Edit' to edit your card details or address. You will be able to cancel in the next 24 hours.",
-    success_message: "{payment_status}! \n \n Say 'Cancel' to cancel, only in the next 24 hours.",
-    refund_message: "{refund_status}. \n \n Your payment has been canceled and the amount will be refunded to your card.",
-  }, {merge: true});
-}
-
 async function save_store_data(shop, access_token, shop_data) {
   const stores_ref =db.collection('Shopify Stores').doc(shop);
 
@@ -289,29 +263,15 @@ async function start_conversation(phoneNumber, shop, product_list) {
   }, {merge: true});
 }
 
-async function increment_number_of_sales(shop) {
-  const store_ref = db.collection('Shopify Stores').doc(shop);
-
-  await store_ref.update({
-    total_sales: admin.firestore.FieldValue.increment(1),
-  });
-}
-
-async function increment_sales(shop, amount, payment_id) {
+async function increment_sales(shop, amount, payment_id, user_data) {
   const salesRef = db.collection('Shopify Stores').doc(shop).collection('Sales').doc(payment_id);
   await salesRef.set({
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
     amount: amount,
     refunded: false,
+    product_list: user_data.current_product_list,
+    discount_applied: user_data.current_discount_amount,
     // Add other relevant data for the sale
-  });
-}
-
-async function decrement_number_of_sales(shop) {
-  const store_ref = db.collection('Shopify Stores').doc(shop);
-
-  await store_ref.update({
-    total_sales: admin.firestore.FieldValue.increment(-1),
   });
 }
 
@@ -322,14 +282,6 @@ async function refund_sale(shop, payment_id) {
     refunded: true,
     refundTimestamp: admin.firestore.FieldValue.serverTimestamp(),
     // Other relevant reversal details
-  });
-}
-
-async function increment_decrement_sales_volume(shop, amount) {
-  const store_ref = db.collection('Shopify Stores').doc(shop);
-
-  await store_ref.update({
-    total_sales_volume: admin.firestore.FieldValue.increment(amount/100),
   });
 }
 
@@ -562,4 +514,4 @@ async function delete_carts(shop, checkout) {
   await batch.commit();
 }
 
-module.exports = {get_product_id, get_store_brand_domain, set_new_cart, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, save_store_access_token, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, increment_number_of_sales, get_users_conversation, increment_decrement_sales_volume, decrement_number_of_sales, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, get_store_brand_domain, set_new_cart, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

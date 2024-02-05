@@ -91,7 +91,6 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
   try {
     const keys = await firebase_service.get_whatsapp_keys(shop);
     const store_names = await firebase_service.get_store_humanName_brandName(shop);
-    // const currency = await firebase_service.get_store_currency(shop);
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
     let reminder;
     if (!last_text_to_customer) {
