@@ -31,9 +31,8 @@ async function main_control(userPhone, message, message_id) {
         if (!returning_user) {
           // First time user
           const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
-          // Send the brand name into the request instead and create a url of the brand name 21stitches.co/checkout/uniqueid
-          // the unique id is the firebase document's .id field, find its url inside
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
+          const checkout_link = await firebase_service.create_dynamic_link(checkout_session.url);
+          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_link, null, null, null, "payment_link_message");
         } else {
         // Returning user
           const status = await firebase_service.get_status(userPhone);
@@ -73,7 +72,8 @@ async function main_control(userPhone, message, message_id) {
         // Delete the current payment intent because we will create one and confirm it later!
         await stripe_service.deletePaymentIntent(current_payment_intent, current_shop);
         const checkout_session = await stripe_service.generateCheckoutSession(userPhone, current_shop);
-        await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_session.url, null, null, null, "payment_link_message");
+        const checkout_link = await firebase_service.create_dynamic_link(checkout_session.url);
+        await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, checkout_link, null, null, null, "payment_link_message");
         break;
       }
       default: {

@@ -34,6 +34,13 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "appAssociation": "AUTO",
+    "rewrites": [
+      {
+        "source": "/checkout/**",
+        "dynamicLinks": true
+      }
     ]
   }
 }
