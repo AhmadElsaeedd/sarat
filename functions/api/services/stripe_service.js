@@ -92,7 +92,7 @@ async function get_product_prices(product_list, shop) {
 }
 
 
-async function create_customer(email, phone_number, payment_method, address, shop) {
+async function create_customer(email, phone_number, shipping_details, payment_method, address, shop) {
   const secretKey = await firebase_service.get_stripe_key(shop);
   const stripe = getStripeInstance(secretKey);
   const customer = await stripe.customers.create({
@@ -103,6 +103,11 @@ async function create_customer(email, phone_number, payment_method, address, sho
       line2: address.line2,
       postal_code: address.postal_code,
       state: address.state,
+    },
+    shipping: {
+      address: address,
+      name: shipping_details.name,
+      phone: phone_number,
     },
     email: email,
     phone: phone_number,
@@ -116,7 +121,7 @@ async function create_customer(email, phone_number, payment_method, address, sho
   return customer;
 }
 
-async function update_customer(customer_id, address, payment_method, phone_number, shop) {
+async function update_customer(customer_id, address, shipping_details, payment_method, phone_number, shop) {
   const secretKey = await firebase_service.get_stripe_key(shop);
   const stripe = getStripeInstance(secretKey);
   const customer = await stripe.customers.update(
@@ -129,6 +134,11 @@ async function update_customer(customer_id, address, payment_method, phone_numbe
           line2: address.line2,
           postal_code: address.postal_code,
           state: address.state,
+        },
+        shipping: {
+          address: address,
+          name: shipping_details.name,
+          phone: phone_number,
         },
         phone: phone_number,
       },
@@ -229,6 +239,16 @@ async function generateCheckoutSession(phoneNumber, shop) {
             message: "We'll use your card to facilitate frictionless payments authorized by you.",
           },
         },
+        // custom_fields: [
+        //   {
+        //     key: "phone_number",
+        //     label: {
+        //       custom: "Phone Number",
+        //       type: 'custom',
+        //     },
+        //     type: 'text',
+        //   },
+        // ],
         payment_method_types: ['card'],
         mode: 'setup',
         metadata: {
@@ -236,10 +256,13 @@ async function generateCheckoutSession(phoneNumber, shop) {
           shop: shop,
         },
         // Later on replace those urls with the actual urls of the brands.
-        success_url: 'https://wa.me/15550717955',
+        success_url: 'https://wa.me/15551304813',
         shipping_address_collection: {
           allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
         },
+        // phone_number_collection: {
+        //   enabled: true,
+        // },
         consent_collection: {
           payment_method_reuse_agreement: {
             position: 'auto',
@@ -253,6 +276,16 @@ async function generateCheckoutSession(phoneNumber, shop) {
             message: "We'll use your card to facilitate frictionless payments authorized by you.",
           },
         },
+        // custom_fields: [
+        //   {
+        //     key: "phone_number",
+        //     label: {
+        //       custom: "Phone Number",
+        //       type: 'custom',
+        //     },
+        //     type: 'text',
+        //   },
+        // ],
         payment_method_types: ['card'],
         mode: 'setup',
         metadata: {
@@ -260,10 +293,13 @@ async function generateCheckoutSession(phoneNumber, shop) {
           shop: shop,
         },
         // Later on replace those urls with the actual urls of the brands.
-        success_url: 'https://wa.me/15550717955',
+        success_url: 'https://wa.me/15551304813',
         shipping_address_collection: {
           allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
         },
+        // phone_number_collection: {
+        //   enabled: true,
+        // },
         consent_collection: {
           payment_method_reuse_agreement: {
             position: 'auto',

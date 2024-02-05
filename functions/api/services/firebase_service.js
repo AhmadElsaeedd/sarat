@@ -131,6 +131,8 @@ async function store_data(customer, phoneNumber, payment_method) {
   }
   const user_ref = db.collection('Customers').doc(phoneNumber);
 
+  console.log("Customer is: ", customer);
+
   // Purchase complete now I want to store the user's data
   await user_ref.set({
     payment_intent_status: "",
