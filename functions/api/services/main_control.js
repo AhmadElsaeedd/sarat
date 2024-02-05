@@ -1,7 +1,7 @@
 const openai_service = require('../services/openai_service');
 const whatsapp_service = require('../services/whatsapp_service');
 const stripe_service = require('../services/stripe_service');
-// const shopify_service = require('../services/shopify_service');
+const shopify_service = require('../services/shopify_service');
 const firebase_service = require('../services/firebase_service');
 
 function get_text_type(text) {
@@ -43,8 +43,10 @@ async function main_control(userPhone, message, message_id) {
           } else if (status === "requires_confirmation") {
             const payment_intent = await stripe_service.confirmPaymentIntent(userPhone, current_shop);
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, payment_intent.status, null, "success_message");
-            // const customer_id = await firebase_service.get_customer_id(userPhone);
-            // await shopify_service.createOrder;
+            const firebase_customer = await firebase_service.get_customer_data(userPhone);
+            const stripe_customer_object = await stripe_service.get_customer(firebase_customer.customer_id, current_shop);
+            await shopify_service.create_order(current_shop, firebase_customer, stripe_customer_object);
+            await firebase_service.use_discount(userPhone);
           }
         }
         break;

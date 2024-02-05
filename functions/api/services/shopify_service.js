@@ -1,4 +1,6 @@
 const axios = require('axios');
+const firebase_service = require('../services/firebase_service');
+const {parsePhoneNumberFromString} = require('libphonenumber-js');
 // const {access} = require('fs');
 
 async function get_customers_and_line_items(checkouts_array) {
@@ -681,4 +683,90 @@ async function attach_script(shop, accessToken) {
   }
 }
 
-module.exports = {get_abandoned_orders, attach_script, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};
+async function create_order(shop, firebase_customer, stripe_customer) {
+  const accessToken = await firebase_service.get_store_access_token(shop);
+
+  const url = `https://${shop}/admin/api/2023-10/orders.json`;
+
+  // Iterate over firebase_customer.current_product_list and create an object out of each element
+  const line_items = firebase_customer.current_product_list.map((item) => ({
+    variant_id: item.variant_id,
+    quantity: 1,
+  }));
+
+  const fullName = stripe_customer.shipping.name;
+  const nameParts = fullName.split(' ');
+
+  const firstName = nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+  const discount_codes = [];
+  if (firebase_customer.current_discount_amount > 0) {
+    discount_codes.push({
+      amount: firebase_customer.current_discount_amount,
+      type: "percentage",
+      code: "Textlet",
+    });
+  }
+
+  let phoneNumber = '+' + stripe_customer.phone;
+  const parsedPhoneNumber = parsePhoneNumberFromString(phoneNumber);
+
+  if (parsedPhoneNumber) {
+    phoneNumber = parsedPhoneNumber.formatInternational();
+  }
+  console.log("Phone number is: ", phoneNumber);
+
+  const data = {
+    order: {
+      line_items: line_items,
+      email: stripe_customer.email,
+      phone: phoneNumber,
+      billing_address: {
+        first_name: firstName,
+        last_name: lastName,
+        address1: stripe_customer.shipping.address.line1,
+        phone: stripe_customer.shipping.phone,
+        city: stripe_customer.shipping.address.city,
+        province: stripe_customer.shipping.address.state,
+        country: stripe_customer.shipping.address.country,
+        zip: stripe_customer.shipping.address.postal_code,
+      },
+      shipping_address: {
+        first_name: firstName,
+        last_name: lastName,
+        address1: stripe_customer.shipping.address.line1,
+        phone: stripe_customer.shipping.phone,
+        city: stripe_customer.shipping.address.city,
+        province: stripe_customer.shipping.address.state,
+        country: stripe_customer.shipping.address.country,
+        zip: stripe_customer.shipping.address.postal_code,
+      },
+      financial_status: "paid",
+      discount_codes: discount_codes,
+    },
+  };
+
+  const config = {
+    headers: {
+      'X-Shopify-Access-Token': accessToken,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  try {
+    const response = await axios.post(url, data, config);
+    console.log("Order created successfully");
+    return response.data;
+  } catch (error) {
+    console.error('Error creating order:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Shopify error:', error.response.data.errors || error.response.data.error);
+    }
+    throw error;
+  }
+}
+
+module.exports = {get_abandoned_orders, create_order, attach_script, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};

@@ -152,6 +152,13 @@ async function update_customer(customer_id, address, shipping_details, payment_m
   return customer;
 }
 
+async function get_customer(customer_id, shop) {
+  const secretKey = await firebase_service.get_stripe_key(shop);
+  const stripe = getStripeInstance(secretKey);
+  const customer = await stripe.customers.retrieve(customer_id);
+  return customer;
+}
+
 async function get_price(product_id, shop) {
   const secretKey = await firebase_service.get_stripe_key(shop);
   const stripe = getStripeInstance(secretKey);
@@ -370,7 +377,6 @@ async function confirmPaymentIntent(phoneNumber, shop) {
         },
     );
     await firebase_service.update_status(phoneNumber, paymentIntent);
-    await firebase_service.use_discount(phoneNumber);
     await firebase_service.increment_sales(shop, paymentIntent.amount/100, paymentIntent.id, user);
     return paymentIntent;
   } catch (error) {
@@ -482,4 +488,4 @@ async function createProductAndPrice(productName, shopify_product_id, price, cur
   }
 }
 
-module.exports = {getStripeInstance, get_product_prices, get_price, update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};
+module.exports = {getStripeInstance, get_customer, get_product_prices, get_price, update_customer, deletePaymentIntent, generatePaymentLink, get_customer_address, generatePaymentIntent, generateCheckoutSession, confirmPaymentIntent, get_card_details, create_customer, get_payment_method, get_product_id, get_customer_id, get_last_payment_intent, create_refund, createProductAndPrice, get_product_ids};

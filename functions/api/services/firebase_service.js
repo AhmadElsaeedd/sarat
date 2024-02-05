@@ -259,6 +259,7 @@ async function start_conversation(phoneNumber, shop, product_list) {
   const user_ref = db.collection('Customers').doc(phoneNumber);
 
   await user_ref.set({
+    // shopify_customer_id: shopify_customer_id,
     current_product_list: product_list,
     phone_number: phoneNumber,
     in_conversation_with: shop,

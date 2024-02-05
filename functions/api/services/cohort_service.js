@@ -15,17 +15,19 @@ async function get_customers_and_line_items(checkouts_array, shop) {
 
     const customer_name =checkout.customer.first_name || null;
 
+    // const customer_id =checkout.customer.id || null;
+
     const customer_currency = checkout.presentment_currency;
 
     const cohort = checkout.cohort;
 
     const product_list = await Promise.all(
         checkout.line_items.map(async (item) => {
-          // const price = await stripe_service.get_price(item.product_id, shop);
           return {
             product_id: item.product_id,
             product_name: item.title,
             variant_title: item.variant_title,
+            variant_id: item.variant_id,
             price_in_presentment_currency: item.price,
           };
         }),
@@ -35,6 +37,7 @@ async function get_customers_and_line_items(checkouts_array, shop) {
 
     const data = {
       customer_name: customer_name,
+      // customer_id: customer_id,
       customer_phone: customer_phone_number,
       checkout_started_at: checkout_started_at,
       customer_currency: customer_currency,
@@ -138,7 +141,7 @@ async function send_messages(access_token, shop, structured_data) {
   const checkout_started_at = date.toISOString();
 
   const structured_data2 = [{
-    "customer_currency": "EGP",
+    "customer_currency": "AED",
     "customer_name": "Ahmed",
     "customer_phone": "201200025500",
     "checkout_started_at": checkout_started_at,
@@ -169,10 +172,11 @@ async function send_messages(access_token, shop, structured_data) {
     },
     "product_list": [
       {
-        "product_id": 8709340234026,
-        "product_name": "Venta Black Joggers Straight / Cuffed Fit",
-        "variant_title": "L",
-        "price_in_presentment_currency": "800.00",
+        "product_id": 8919620256035,
+        "product_name": "The Collection Snowboard: Liquid",
+        "variant_id": 47259561525539,
+        "variant_name": "Default Title",
+        "price_in_presentment_currency": "749.95",
       },
     ],
   }];

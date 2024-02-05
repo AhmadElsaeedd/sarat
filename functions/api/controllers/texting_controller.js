@@ -16,6 +16,7 @@ const postSendMessageToMass = async (req, res) => {
     for (let i = 0; i < length; i++) {
       const productList = selected_people[i].product_list;
       const personName = selected_people[i].customer_name;
+      // const shopify_customer_id = selected_people[i].customer_id;
       const phoneNumber = selected_people[i].customer_phone;
       const checkoutStartedAt = selected_people[i].checkout_started_at;
       const cohort = selected_people[i].cohort;
