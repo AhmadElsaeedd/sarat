@@ -37,5 +37,26 @@ const postFirebaseGetMessageTemplate = async (req, res) => {
   }
 };
 
+const postSetNewCart = async (req, res) => {
+  try {
+    // Required parameters
+    const cart = req.body.cart;
+    const shopDomain = req.body.shop;
+    if (!cart || !shopDomain) {
+      res.status(400).send('Missing required parameters');
+    }
 
-module.exports = {postFirebaseUpdateMessageTemplate, postFirebaseGetMessageTemplate};
+    console.log("Cart is: ", cart);
+    console.log("Shop domain is: ", shopDomain);
+    await firebase_service.set_new_cart(shopDomain, cart);
+
+
+    res.status(200).send();
+  } catch (error) {
+    console.error("Error in postSetNewCart:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+module.exports = {postFirebaseUpdateMessageTemplate, postFirebaseGetMessageTemplate, postSetNewCart};

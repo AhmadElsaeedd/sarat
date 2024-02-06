@@ -8,7 +8,7 @@ const firebaseRoutes = require('./routes/firebase_routes');
 
 
 const app = express();
-app.use(cors({origin: true}));
+app.use(cors({origin: "*"}));
 // Callable using https://us-central1-your-project-id.cloudfunctions.net/webhook
 app.use('/', webhookRoutes);
 // Callabe using https://us-central1-your-project-id.cloudfunctions.net/webhook/texting

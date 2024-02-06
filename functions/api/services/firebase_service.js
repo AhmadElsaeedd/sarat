@@ -158,6 +158,7 @@ async function save_store_data(shop, access_token, shop_data) {
 
   await stores_ref.set({
     brand_name: shop_data.name,
+    domain: shop_data.domain,
     human_name: shop_data.shop_owner,
     stripe_secret_token: "",
     stripe_endpoint_secret: "",
