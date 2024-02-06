@@ -125,6 +125,14 @@ async function update_status(phoneNumber, payment_intent) {
   }, {merge: true});
 }
 
+async function set_status(phoneNumber, status) {
+  const user_ref = db.collection('Customers').doc(phoneNumber);
+
+  await user_ref.set({
+    payment_intent_status: status,
+  }, {merge: true});
+}
+
 async function store_data(customer, phoneNumber, payment_method) {
   if (typeof phoneNumber === 'number') {
     phoneNumber = phoneNumber.toString();
@@ -518,6 +526,18 @@ async function delete_carts(shop, checkout) {
   await batch.commit();
 }
 
+async function set_new_order(phoneNumber, orderId) {
+  if (typeof phoneNumber === 'number') {
+    phoneNumber = phoneNumber.toString();
+  }
+  const user_ref = db.collection('Customers').doc(phoneNumber);
+
+  // Purchase complete now I want to store the user's data
+  await user_ref.set({
+    shopify_order_id: orderId,
+  }, {merge: true});
+}
+
 async function create_dynamic_link(url) {
   const dynamicLinksUrl = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyDhFO3rinYOsX5_C7IpYw4KQTgbqgJNsYw';
   const linkRequest = {
@@ -539,4 +559,4 @@ async function create_dynamic_link(url) {
   }
 }
 
-module.exports = {get_product_id, create_dynamic_link, get_store_brand_domain, set_new_cart, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, set_new_order, set_status, create_dynamic_link, get_store_brand_domain, set_new_cart, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

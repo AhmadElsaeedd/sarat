@@ -45,30 +45,38 @@ async function main_control(userPhone, message, message_id) {
             await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, payment_intent.status, null, "success_message");
             const firebase_customer = await firebase_service.get_customer_data(userPhone);
             const stripe_customer_object = await stripe_service.get_customer(firebase_customer.customer_id, current_shop);
-            await shopify_service.create_order(current_shop, firebase_customer, stripe_customer_object);
+            const order = await shopify_service.create_order(current_shop, firebase_customer, stripe_customer_object);
+            await firebase_service.set_new_order(userPhone, order.id);
             await firebase_service.use_discount(userPhone);
+          } else if (status === "pending_cancellation") {
+            // Handle 'cancel' text
+            const user = await firebase_service.get_customer_data(userPhone);
+            const user_email = user.customer_email;
+            const current_payment_intent = user.current_payment_intent;
+            const current_order = user.shopify_order_id;
+            // get the customer id of the user from stripe using their email
+            const customer_id = await stripe_service.get_customer_id(user_email, current_shop);
+            // get the id of the last payment intent of the user
+            const last_payment_intent = await stripe_service.get_last_payment_intent(customer_id, current_shop);
+            // make sure that the one in firebase and the one from stripe are the same
+            if (current_payment_intent === last_payment_intent.id && isCreatedInLast24Hours(last_payment_intent)) {
+              // refund it on stripe
+              const refund_object = await stripe_service.create_refund(userPhone, last_payment_intent.id, current_shop);
+              // delete it on shopify
+              await shopify_service.cancel_order(current_shop, current_order);
+              await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, refund_object.status, null, null, "refund_message");
+            } else {
+              await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, null, "failed_refund");
+            }
+            // Handle the part where we decrement the sales volume amount when the user refunds
           }
         }
         break;
       }
       case "cancel": {
-        // Handle 'cancel' text
-        const user = await firebase_service.get_customer_data(userPhone);
-        const user_email = user.customer_email;
-        const current_payment_intent = user.current_payment_intent;
-        // get the customer id of the user from stripe using their email
-        const customer_id = await stripe_service.get_customer_id(user_email, current_shop);
-        // get the id of the last payment intent of the user
-        const last_payment_intent = await stripe_service.get_last_payment_intent(customer_id, current_shop);
-        // make sure that the one in firebase and the one from stripe are the same
-        if (current_payment_intent === last_payment_intent.id && isCreatedInLast24Hours(last_payment_intent)) {
-          // refund it
-          const refund_object = await stripe_service.create_refund(userPhone, last_payment_intent.id, current_shop);
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, refund_object.status, null, null, "refund_message");
-        } else {
-          await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, null, "failed_refund");
-        }
-        // Handle the part where we decrement the sales volume amount when the user refunds
+        // just change the status to "pending_cancellation" then send the pending cancellation message
+        await firebase_service.set_status(userPhone, "pending_cancellation");
+        await whatsapp_service.sendMessage(userPhone, null, null, null, null, null, null, null, null, null, "cancellation_confirmation");
         break;
       }
       case "edit": {

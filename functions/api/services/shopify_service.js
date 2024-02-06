@@ -757,7 +757,7 @@ async function create_order(shop, firebase_customer, stripe_customer) {
   try {
     const response = await axios.post(url, data, config);
     console.log("Order created successfully");
-    return response.data;
+    return response.data.order;
   } catch (error) {
     console.error('Error creating order:', error.message);
     if (error.response) {
@@ -769,4 +769,31 @@ async function create_order(shop, firebase_customer, stripe_customer) {
   }
 }
 
-module.exports = {get_abandoned_orders, create_order, attach_script, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};
+async function cancel_order(shop, order_id) {
+  const accessToken = await firebase_service.get_store_access_token(shop);
+
+  const url = `https://${shop}/admin/api/2023-10/orders/${order_id}/cancel.json`;
+
+  const config = {
+    headers: {
+      'X-Shopify-Access-Token': accessToken,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  try {
+    const response = await axios.post(url, config);
+    console.log("Order cancelled successfully");
+    return response.data.order;
+  } catch (error) {
+    console.error('Error cancelling order:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Shopify error:', error.response.data.errors || error.response.data.error);
+    }
+    throw error;
+  }
+}
+
+module.exports = {get_abandoned_orders, create_order, cancel_order, attach_script, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};

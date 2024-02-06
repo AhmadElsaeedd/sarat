@@ -212,6 +212,8 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
     }
     case 'failed_refund':
       return "Failed to refund.";
+    case 'cancellation_confirmation':
+      return "Are you sure you want to cancel your order?\n\nSay \"Yes\" to cancel.";
     default:
       return messageContent;
   }
