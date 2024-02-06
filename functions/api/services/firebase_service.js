@@ -542,7 +542,7 @@ async function create_dynamic_link(url) {
   const dynamicLinksUrl = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyDhFO3rinYOsX5_C7IpYw4KQTgbqgJNsYw';
   const linkRequest = {
     dynamicLinkInfo: {
-      domainUriPrefix: 'https://textlet.io/checkout',
+      domainUriPrefix: 'https://app.textlet.io/checkout',
       link: url,
     },
     suffix: {

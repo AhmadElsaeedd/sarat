@@ -61,6 +61,9 @@ div.appendChild(closeButton);
 
         // Create a new button element for submission
         var button = document.createElement('button');
+
+        button.style.paddingTop = "0px";
+        button.style.paddingBottom = "0px";
         button.textContent = "Submit";
         button.style.width = "100%";
         button.style.padding = "10px";
@@ -174,6 +177,8 @@ div.appendChild(closeButton);
     
             // Create a new button element for submission
             var button = document.createElement('button');
+            button.style.paddingTop = "0px";
+            button.style.paddingBottom = "0px";
             button.textContent = "Submit";
             button.style.width = "100%";
             button.style.padding = "10px";
@@ -185,6 +190,12 @@ div.appendChild(closeButton);
             button.onclick = function() {
                 // Connect to Firebase and do something with the input value
                 console.log("Submitted with value: " + input.value);
+
+                fetch('/cart.js').then(async res => {
+                    const json = await res.json();
+
+                    console.log(json);
+                })
             };
     
             // Create a new paragraph element for the 'or' text
