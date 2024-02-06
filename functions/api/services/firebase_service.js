@@ -514,6 +514,18 @@ async function set_new_cart(shop, cart) {
   await cart_ref.set(cart);
 }
 
+async function update_cart(shopDomain, cart) {
+  const cartRef = db.collection('Shopify Stores').doc(shopDomain).collection('Carts');
+  const snapshot = await cartRef.where('token', '==', cart.token).get();
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    await doc.ref.set(cart, {merge: true});
+  } else {
+    console.log(`No cart found for token: ${cart.token}`);
+  }
+}
+
 async function delete_carts(shop, checkout) {
   const cartRef = db.collection('Shopify Stores').doc(shop).collection('Carts');
   const snapshot = await cartRef.where('id', '==', checkout.cart_token).get();
@@ -560,4 +572,4 @@ async function create_dynamic_link(url) {
   }
 }
 
-module.exports = {get_product_id, set_new_order, set_status, create_dynamic_link, get_store_brand_domain, set_new_cart, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, set_new_cart, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

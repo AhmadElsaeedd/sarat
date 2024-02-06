@@ -633,6 +633,27 @@ async function subscribe_to_cart_creation(shop, access_token) {
   console.log(response.data);
 }
 
+async function subscribe_to_cart_update(shop, access_token) {
+  const data = {
+    "webhook": {
+      "topic": "carts/update",
+      "address": "https://us-central1-textlet-test.cloudfunctions.net/webhook/shopify/CartUpdatedWebhook",
+      "format": "json",
+    },
+  };
+
+  const config = {
+    headers: {
+      'X-Shopify-Access-Token': access_token,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  const response = await axios.post(`https://${shop}/admin/api/2023-10/webhooks.json`, data, config);
+  console.log("Subscribed to cart updated webhook");
+  console.log(response.data);
+}
+
 async function subscribe_to_checkout_creation(shop, access_token) {
   const data = {
     "webhook": {
@@ -796,4 +817,4 @@ async function cancel_order(shop, order_id) {
   }
 }
 
-module.exports = {get_abandoned_orders, create_order, cancel_order, attach_script, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};
+module.exports = {get_abandoned_orders, create_order, cancel_order, attach_script, get_last_orders_of_customers_who_have_abandoned_checkouts, subscribe_to_cart_creation, subscribe_to_cart_update, subscribe_to_checkout_creation, get_store_configuration, get_products_for_refill_feature, update_products_with_refill_field, get_product, create_products_refill_field, get_customer_ids_for_refill_feature, get_customers_who_need_refill, get_customer_orders, get_product_image, get_product_names_and_prices, get_products, get_customers_for_product_launches, get_abandoned_orders_first_reminder, get_product_images};

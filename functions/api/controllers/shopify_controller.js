@@ -36,8 +36,11 @@ const handleAuthenticationCallback = async (req, res) => {
     console.log("Shop data is: ", shopData);
     await firebase_service.save_store_data(shop, accessToken, shopData);
     await shopify_service.subscribe_to_cart_creation(shop, accessToken);
+    await shopify_service.subscribe_to_cart_update(shop, accessToken);
     await shopify_service.subscribe_to_checkout_creation(shop, accessToken);
-    await shopify_service.attach_script(shop, accessToken);
+    if (shop!="21stitches-co-8829.myshopify.com") {
+      await shopify_service.attach_script(shop, accessToken);
+    }
 
     // Redirect the user to your app with the token or set the token in session
     const redirectUrl = 'https://textlet0.retool.com/apps/4f1c9cfc-aaf6-11ee-8409-77d5b96375e9/Authentication%20flow';
@@ -125,6 +128,23 @@ const postCartCreatedWebhook = async (req, res) => {
     console.log(`Webhook received from: ${shopDomain}`);
 
     res.status(200).send('Cart creation webhook payload received');
+  } catch (error) {
+    console.error("Error in postCartCreatedWebhook:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postCartUpdatedWebhook = async (req, res) => {
+  try {
+    // This endpoint will receive cart update events from the webhook and store them as is in our firestore
+    const payload = req.body;
+    const shopDomain = req.get('X-Shopify-Shop-Domain'); // This gets the Shopify shop domain
+
+    await firebase_service.update_cart(shopDomain, payload);
+
+    console.log(`Webhook received from: ${shopDomain}`);
+
+    res.status(200).send('Cart update webhook payload received');
   } catch (error) {
     console.error("Error in postCartCreatedWebhook:", error);
     res.status(500).send('Internal Server Error');
@@ -264,4 +284,4 @@ const postShopifyAllCustomers = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow, postCheckoutCreatedWebhook};
+module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postCartUpdatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow, postCheckoutCreatedWebhook};
