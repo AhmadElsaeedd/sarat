@@ -75,6 +75,30 @@ div.appendChild(closeButton);
         button.onclick = function() {
             // Connect to Firebase and do something with the input value
             console.log("Submitted with value: " + input.value);
+        
+            fetch('/cart.js').then(async res => {
+                let cart = await res.json();
+                cart.phone_number = input.value;
+
+                // Make a POST request to your server
+                const response = await fetch('https://us-central1-textlet-test.cloudfunctions.net/webhook/firebase/SetNewCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cart: cart,
+                        shop: Shopify.shop
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+            })
         };
 
         // Create a new paragraph element for the 'or' text
@@ -194,8 +218,6 @@ div.appendChild(closeButton);
                 fetch('/cart.js').then(async res => {
                     let cart = await res.json();
                     cart.phone_number = input.value;
-                    console.log("Cart is: ", cart);
-                    console.log("Shopify shop: ", Shopify.shop);
 
                     // Make a POST request to your server
                     const response = await fetch('https://us-central1-textlet-test.cloudfunctions.net/webhook/firebase/SetNewCart', {

@@ -123,7 +123,7 @@ const postCartCreatedWebhook = async (req, res) => {
     const payload = req.body;
     const shopDomain = req.get('X-Shopify-Shop-Domain'); // This gets the Shopify shop domain
 
-    await firebase_service.set_new_cart(shopDomain, payload);
+    await firebase_service.update_cart(shopDomain, payload);
 
     console.log(`Webhook received from: ${shopDomain}`);
 

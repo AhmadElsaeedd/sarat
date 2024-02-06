@@ -46,12 +46,10 @@ const postSetNewCart = async (req, res) => {
       res.status(400).send('Missing required parameters');
     }
 
-    console.log("Cart is: ", cart);
-    console.log("Shop domain is: ", shopDomain);
-    await firebase_service.set_new_cart(shopDomain, cart);
+    await firebase_service.update_cart(shopDomain, cart);
 
 
-    res.status(200).send();
+    res.status(200).json({message: 'Success'});
   } catch (error) {
     console.error("Error in postSetNewCart:", error);
     res.status(500).send('Internal Server Error');

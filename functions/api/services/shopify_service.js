@@ -678,7 +678,7 @@ async function subscribe_to_checkout_creation(shop, access_token) {
 async function attach_script(shop, accessToken) {
   const url = `https://${shop}/admin/api/2023-10/script_tags.json`;
 
-  const scriptSrc = "https://textlet-test.web.app/whatsapp_script.js";
+  const scriptSrc = "https://app.textlet.io/website_script.js";
 
   const data = {
     script_tag: {
