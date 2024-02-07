@@ -164,8 +164,7 @@ async function determineCohort(item, cohorts) {
 
   // Find the cohort that matches the customer type, cart value, and number of items in cart
   const cohort = cohorts.find((cohort) => {
-    const purchaseFrequencyIncludesCartType = cohort.purchase_frequency.includes(item_type);
-    console.log("Purchase frequency includes cart type: ", purchaseFrequencyIncludesCartType);
+    const eventTypeIncludesItemType = cohort.event_type.includes(item_type);
     // This will always return false because we won't know whether they're a new customer or an old customer from an abandoned cart
     let purchaseFrequencyIncludesCustomer;
     if (item.type === "cart") {
@@ -173,16 +172,12 @@ async function determineCohort(item, cohorts) {
     } else {
       purchaseFrequencyIncludesCustomer = cohort.purchase_frequency.includes(customerType);
     }
-    console.log("Purchase frequency includes customer type: ", purchaseFrequencyIncludesCustomer);
     const cartValueIsWithinRange = (cohort.cart_value[0] === undefined || cohort.cart_value[0] === 0 || totalPriceInDefaultCurrency >= cohort.cart_value[0]) &&
                                        (cohort.cart_value[1] === undefined || cohort.cart_value[1] === 0 || totalPriceInDefaultCurrency <= cohort.cart_value[1]);
-    console.log("Cart value is within range: ", cartValueIsWithinRange);
     const itemsInCartIsWithinRange = (cohort.items_in_cart[0] === undefined || cohort.items_in_cart[0] === 0 || no_of_items_in_cart >= cohort.items_in_cart[0]) &&
                                          (cohort.items_in_cart[1] === undefined || cohort.items_in_cart[1] === 0 || no_of_items_in_cart <= cohort.items_in_cart[1]);
-    console.log("Number of items in cart is within range: ", itemsInCartIsWithinRange);
     const lastOrderIntervalMatches = diffInDays === 0 || cohort.last_order_interval === undefined || cohort.last_order_interval <= diffInDays;
-    console.log("Last order matches or not: ", lastOrderIntervalMatches);
-    return purchaseFrequencyIncludesCartType && purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange && lastOrderIntervalMatches;
+    return eventTypeIncludesItemType && purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange && lastOrderIntervalMatches;
   });
 
   // If no cohort matches, you might want to handle this case differently
