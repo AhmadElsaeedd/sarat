@@ -1,39 +1,78 @@
 const axios = require('axios');
 // const stripe_service = require('../services/stripe_service');
 
-async function get_customers_and_line_items(checkouts_array, shop) {
+async function get_customers_and_line_items(array_of_items, shop) {
   const structured_customers = [];
 
-  for (const checkout of checkouts_array) {
+  for (const item of array_of_items) {
     let customer_phone_number;
-    if (!checkout.customer || !checkout.customer.phone && !(checkout.customer.default_address && checkout.customer.default_address.phone)) {
-      customer_phone_number = null;
-    } else {
-      customer_phone_number = checkout.customer.phone || checkout.customer.default_address.phone;
+    let customer_name;
+    let customer_currency;
+    let cohort = [];
+    let product_list = [];
+    let checkout_started_at;
+    if (item.type === "checkout") {
+      if (!item.customer || !item.customer.phone && !(item.customer.default_address && item.customer.default_address.phone)) {
+        customer_phone_number = null;
+      } else {
+        customer_phone_number = item.customer.phone || item.customer.default_address.phone;
+      }
+      customer_name = item.customer.first_name || null;
+      customer_currency = item.presentment_currency;
+      cohort = item.cohort;
+
+
+      product_list = await Promise.all(
+          item.line_items.map(async (item) => {
+            return {
+              product_id: item.product_id,
+              product_name: item.title,
+              variant_title: item.variant_title,
+              variant_id: item.variant_id,
+              price_in_presentment_currency: item.price,
+            };
+          }),
+      );
+
+      checkout_started_at = item.created_at;
+    } else if (item.type === "cart") {
+      customer_phone_number = item.phone_number;
+      customer_name = null;
+      customer_currency = item.line_items[0].line_price_set.presentment_money.currency_code;
+      cohort = item.cohort;
+
+      product_list = await Promise.all(
+          item.line_items.map(async (item) => {
+            return {
+              product_id: item.product_id,
+              product_name: item.title,
+              variant_title: item.variant_title || null,
+              variant_id: item.variant_id,
+              price_in_presentment_currency: item.line_price_set.presentment_money.amount,
+            };
+          }),
+      );
+
+      checkout_started_at = item.created_at;
     }
 
+    // const customer_currency = checkout.presentment_currency;
 
-    const customer_name =checkout.customer.first_name || null;
+    // const cohort = checkout.cohort;
 
-    // const customer_id =checkout.customer.id || null;
+    // const product_list = await Promise.all(
+    //     checkout.line_items.map(async (item) => {
+    //       return {
+    //         product_id: item.product_id,
+    //         product_name: item.title,
+    //         variant_title: item.variant_title,
+    //         variant_id: item.variant_id,
+    //         price_in_presentment_currency: item.price,
+    //       };
+    //     }),
+    // );
 
-    const customer_currency = checkout.presentment_currency;
-
-    const cohort = checkout.cohort;
-
-    const product_list = await Promise.all(
-        checkout.line_items.map(async (item) => {
-          return {
-            product_id: item.product_id,
-            product_name: item.title,
-            variant_title: item.variant_title,
-            variant_id: item.variant_id,
-            price_in_presentment_currency: item.price,
-          };
-        }),
-    );
-
-    const checkout_started_at = checkout.created_at;
+    // const checkout_started_at = checkout.created_at;
 
     const data = {
       customer_name: customer_name,
@@ -180,7 +219,7 @@ async function combine_both_arrays(abandoned_checkouts, abandoned_carts) {
   return checkoutsWithTypes.concat(cartsWithTypes);
 }
 
-async function send_messages(access_token, shop, structured_data) {
+async function send_messages(shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
 
   const date = new Date();
@@ -233,12 +272,9 @@ async function send_messages(access_token, shop, structured_data) {
     shop: shop,
 
   };
-  const response = await axios.post(url, body, {
-    headers: {
-      'X-Shopify-Access-Token': access_token,
-    },
-  });
+  const response = await axios.post(url, body);
   return response;
+  // return body;
 }
 
 module.exports = {get_customers_with_cohorts, combine_both_arrays, structure_data_for_messaging, send_messages, combine_orders_with_abandoned_checkouts};

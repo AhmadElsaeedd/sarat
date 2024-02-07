@@ -110,15 +110,14 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
     // ToDo: CHANGE THE NAME OF THIS TO ABANDONED_EVERYTHING WITH COHORTS AND PASS IT INTO STRUCTURE DATA FOR MESSAGING
 
     // Get the data that we need from the above array
-    // We need: shopify_productNames (array), shopify_productIds (array), phoneNumber, customer name
-    // const structured_data = await cohort_service.structure_data_for_messaging(abandoned_checkouts_with_cohorts, shop);
+    const structured_data = await cohort_service.structure_data_for_messaging(abandoned_everything_with_cohorts, shop);
 
     // Based on each customer's cohort and the time that they're in, send them the message that they should receive
-    // await cohort_service.send_messages(access_token, shop, structured_data);
+    // const check_proper_data = await cohort_service.send_messages(shop, structured_data);
 
     // I don't think we should return anything here, we could just return success
     // res.status(200).send('Abandoned Carts Flow Done!');
-    res.status(200).send(abandoned_everything_with_cohorts);
+    res.status(200).send(structured_data);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCartsFlow:", error);
     res.status(500).send('Internal Server Error');
