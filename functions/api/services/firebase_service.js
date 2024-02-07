@@ -501,6 +501,9 @@ async function get_discount_amount(phoneNumber) {
 }
 
 async function does_message_exist(shop, messageId) {
+  console.log("LOOKING FOR MESSAGE IN DB");
+  console.log("Shop is: ", shop);
+  console.log("Message id is: ", messageId);
   const messages_reference = db.collection('Shopify Stores').doc(shop).collection('Messages');
   const snapshot = await messages_reference
       .where('message_id', '==', messageId)

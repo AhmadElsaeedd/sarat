@@ -803,7 +803,7 @@ async function cancel_order(shop, order_id) {
   };
 
   try {
-    const response = await axios.post(url, config);
+    const response = await axios.post(url, {}, config);
     console.log("Order cancelled successfully");
     return response.data.order;
   } catch (error) {
