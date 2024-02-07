@@ -4,6 +4,7 @@
     "csv-parse": "^5.5.3",
     "firebase-admin": "^12.0.0",
     "fs": "^0.0.1-security",
+    "intl-tel-input": "^19.2.16",
     "openai": "^4.24.1",
     "stripe": "^14.10.0"
   }

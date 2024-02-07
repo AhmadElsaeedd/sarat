@@ -41,7 +41,7 @@ div.appendChild(closeButton);
 
         // Create a new paragraph element for the title
         var p1 = document.createElement('p');
-        p1.textContent = "Want 10% off your order?";
+        p1.textContent = "Claim 10% off your order by entering your number and texting us";
         p1.style.fontWeight = "bold";
         p1.style.textAlign = "center";
         p1.style.marginBottom = "10px";
@@ -64,12 +64,12 @@ div.appendChild(closeButton);
 
         button.style.paddingTop = "0px";
         button.style.paddingBottom = "0px";
-        button.textContent = "Submit";
+        button.textContent = "Claim";
         button.style.width = "100%";
         button.style.padding = "10px";
         button.style.marginBottom = "10px";
         button.style.border = "none";
-        button.style.backgroundColor = "#008CBA"; // Blue color
+        button.style.backgroundColor = "#ffc629"; // Blue color
         button.style.color = "white"; // White text
         button.style.cursor = "pointer";
         button.onclick = function() {
@@ -116,13 +116,20 @@ div.appendChild(closeButton);
         a.style.textAlign = "center";
         a.style.display = "block";
 
+        var consentText = document.createElement('p');
+        consentText.textContent = "By inputting your phone number or texting us you consent to receive marketing text messages from us on the number provided. You can unsubscribe at anytime.";
+        consentText.style.textAlign = "center";
+        consentText.style.fontSize = "10px"; // Small text
+        consentText.style.color = "gray"; // Gray color
+
         // Append the elements to the div
         div.appendChild(p1);
-        div.appendChild(p2);
+        // div.appendChild(p2);
         div.appendChild(input);
         div.appendChild(button);
-        div.appendChild(p3);
-        div.appendChild(a);
+        // div.appendChild(p3);
+        // div.appendChild(a);
+        div.appendChild(consentText);
 
         // Append the div to the body
         document.body.appendChild(div);
@@ -181,7 +188,7 @@ div.appendChild(closeButton);
     
             // Create a new paragraph element for the title
             var p1 = document.createElement('p');
-            p1.textContent = "Want 10% off your order?";
+            p1.textContent = "Claim 10% off your order by entering your number and texting us";
             p1.style.fontWeight = "bold";
             p1.style.textAlign = "center";
             p1.style.marginBottom = "10px";
@@ -203,12 +210,12 @@ div.appendChild(closeButton);
             var button = document.createElement('button');
             button.style.paddingTop = "0px";
             button.style.paddingBottom = "0px";
-            button.textContent = "Submit";
+            button.textContent = "Claim";
             button.style.width = "100%";
             button.style.padding = "10px";
             button.style.marginBottom = "10px";
             button.style.border = "none";
-            button.style.backgroundColor = "#008CBA"; // Blue color
+            button.style.backgroundColor = "#ffc629"; // Blue color
             button.style.color = "white"; // White text
             button.style.cursor = "pointer";
             button.onclick = function() {
@@ -254,14 +261,21 @@ div.appendChild(closeButton);
             a.innerHTML = "<u>Go to Whatsapp</u> and text us to automatically unlock your discount";
             a.style.textAlign = "center";
             a.style.display = "block";
+
+            var consentText = document.createElement('p');
+            consentText.textContent = "By inputting your phone number or texting us you consent to receive marketing text messages from us on the number provided. You can unsubscribe at anytime.";
+            consentText.style.textAlign = "center";
+            consentText.style.fontSize = "10px"; // Small text
+            consentText.style.color = "gray"; // Gray color
     
             // Append the elements to the div
             div.appendChild(p1);
-            div.appendChild(p2);
+            // div.appendChild(p2);
             div.appendChild(input);
             div.appendChild(button);
-            div.appendChild(p3);
-            div.appendChild(a);
+            // div.appendChild(p3);
+            // div.appendChild(a);
+            div.appendChild(consentText);
     
             // Append the div to the body
             document.body.appendChild(div);
