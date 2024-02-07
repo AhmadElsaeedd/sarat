@@ -501,6 +501,10 @@ async function get_discount_amount(phoneNumber) {
 }
 
 async function does_message_exist(shop, messageId) {
+  if (typeof shop !== 'string' || shop.trim() === '') {
+    throw new Error('Invalid shop parameter. Shop must be a non-empty string.');
+  }
+
   console.log("LOOKING FOR MESSAGE IN DB");
   console.log("Shop is: ", shop);
   console.log("Message id is: ", messageId);
@@ -513,7 +517,6 @@ async function does_message_exist(shop, messageId) {
 
 async function update_cart(shopDomain, cart) {
   const cartRef = db.collection('Shopify Stores').doc(shopDomain).collection('Carts');
-  console.log("Updating cart and the token is: ", cart.token);
   const snapshot = await cartRef.where('token', '==', cart.token).get();
 
   let docRef;
@@ -574,4 +577,15 @@ async function create_dynamic_link(url) {
   }
 }
 
-module.exports = {get_product_id, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+async function get_abandoned_carts(shop) {
+  const cartRef = db.collection('Shopify Stores').doc(shop).collection('Carts');
+  const snapshot = await cartRef.get();
+
+  const cartsWithPhoneNumber = snapshot.docs
+      .map((doc) => doc.data())
+      .filter((cart) => cart.phone_number !== undefined);
+
+  return cartsWithPhoneNumber;
+}
+
+module.exports = {get_product_id, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

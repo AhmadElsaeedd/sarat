@@ -80,12 +80,15 @@ const postShopifyOnboardBrand = async (req, res) => {
 
 const postShopifyAbandonedCartsFlow = async (req, res) => {
   try {
-    // This endpoint will send messages to all customers who left an abandoned cart based on what cohort they fall in
+    // This endpoint will send messages to all customers who left an abandoned checkout or cart based on what cohort they fall in
     const shop = req.body.shop;
     const access_token = await firebase_service.get_store_access_token(shop);
 
     // Gets all abandoned checkouts that haven't been completed
     const abandoned_uncompleted_checkouts = await shopify_service.get_abandoned_orders(shop, access_token);
+
+    // Gets all abandoned carts that have a phone number
+    const abandoned_carts = await firebase_service.get_abandoned_carts(shop);
 
     // Get all the last orders made by the customers (if they have ordered before)
     const orders = await shopify_service.get_last_orders_of_customers_who_have_abandoned_checkouts(shop, access_token, abandoned_uncompleted_checkouts);
@@ -97,8 +100,13 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
     // Get all the cohorts in the brand
     const cohorts = await firebase_service.get_cohorts(shop);
 
+    // Combine abandoned carts and abandoned checkouts in the same array
+    const abandoned_everything = await cohort_service.combine_both_arrays(abandoned_checkouts_with_last_order, abandoned_carts);
+
+    // ToDo: INCLUDE SEGMENTATION BASED ON CART OR CHECKOUT INSIDE THIS FUNCTION
     // Assign each checkout to a cohort and get all the needed details with also first reminder/second reminder
-    const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_checkouts_with_last_order, cohorts);
+    const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_everything, cohorts);
+    // ToDo: CHANGE THE NAME OF THIS TO ABANDONED_EVERYTHING WITH COHORTS AND PASS IT INTO STRUCTURE DATA FOR MESSAGING
 
     // Get the data that we need from the above array
     // We need: shopify_productNames (array), shopify_productIds (array), phoneNumber, customer name

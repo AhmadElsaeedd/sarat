@@ -133,6 +133,20 @@ async function combine_orders_with_abandoned_checkouts(abandoned_checkouts, orde
   return abandoned_checkouts;
 }
 
+async function combine_both_arrays(abandoned_checkouts, abandoned_carts) {
+  const checkoutsWithTypes = abandoned_checkouts.map((checkout) => ({
+    ...checkout,
+    type: 'checkout',
+  }));
+
+  const cartsWithTypes = abandoned_carts.map((cart) => ({
+    ...cart,
+    type: 'cart',
+  }));
+
+  return checkoutsWithTypes.concat(cartsWithTypes);
+}
+
 async function send_messages(access_token, shop, structured_data) {
   const url = `https://us-central1-textlet-test.cloudfunctions.net/webhook/texting/SendMessagesToMass`;
 
@@ -194,4 +208,4 @@ async function send_messages(access_token, shop, structured_data) {
   return response;
 }
 
-module.exports = {get_customers_with_cohorts, structure_data_for_messaging, send_messages, combine_orders_with_abandoned_checkouts};
+module.exports = {get_customers_with_cohorts, combine_both_arrays, structure_data_for_messaging, send_messages, combine_orders_with_abandoned_checkouts};
