@@ -57,20 +57,20 @@ async function structure_data_for_messaging(checkouts_with_cohorts, shop) {
   return structured_data;
 }
 
-async function get_customers_with_cohorts(abandoned_checkouts, cohorts) {
-  const checkoutsWithCohorts = await Promise.all(
-      abandoned_checkouts.map(async (abandoned_checkout) =>{
+async function get_customers_with_cohorts(abandoned_everything, cohorts) {
+  const allAbandonedWithCohorts = await Promise.all(
+      abandoned_everything.map(async (abandoned_item) =>{
       // Determine the cohort for this checkout based on your conditions
-        const cohort = await determineCohort(abandoned_checkout, cohorts);
+        const cohort = await determineCohort(abandoned_item, cohorts);
 
         // Assign the cohort to the checkout
-        abandoned_checkout.cohort = cohort;
+        abandoned_item.cohort = cohort;
 
-        return abandoned_checkout;
+        return abandoned_item;
       }),
   );
 
-  return checkoutsWithCohorts;
+  return allAbandonedWithCohorts;
 }
 
 async function convertToDefaultCurrency(amount, fromCurrency, toCurrency) {
@@ -82,35 +82,68 @@ async function convertToDefaultCurrency(amount, fromCurrency, toCurrency) {
   }
 }
 
-async function determineCohort(checkout, cohorts) {
-  // Determine if the customer is a first time or returning customer
-  const customerType = checkout.customer.orders_count === 0 ? 'first_time' : 'returning';
+async function determineCohort(item, cohorts) {
+  const item_type = item.type === "checkout" ? 'abandoned_checkouts' : "abandoned_carts";
 
-  // Calculate the number of days since the last order
+  let customerType;
   let diffInDays = 0;
-  if (checkout.customer.last_order_date) {
-    const lastOrderDate = new Date(checkout.customer.last_order_date);
-    const now = new Date();
-    const diffInTime = now.getTime() - lastOrderDate.getTime();
-    diffInDays = diffInTime / (1000 * 3600 * 24);
+  let totalPriceInDefaultCurrency;
+  let no_of_items_in_cart = 0;
+  if (item.type === "checkout") {
+    // Determine if the customer is a first time or returning customer
+    customerType = item.customer.orders_count === 0 ? 'first_time' : 'returning';
+
+    if (item.customer.last_order_date) {
+      const lastOrderDate = new Date(item.customer.last_order_date);
+      const now = new Date();
+      const diffInTime = now.getTime() - lastOrderDate.getTime();
+      diffInDays = diffInTime / (1000 * 3600 * 24);
+    }
+
+    // Assing the cart value here
+    if (item.presentment_currency != item.currency) {
+      totalPriceInDefaultCurrency = await convertToDefaultCurrency(item.total_price, item.presentment_currency, item.currency);
+    } else {
+      totalPriceInDefaultCurrency = item.total_price;
+    }
+
+
+    // Assign the number of items in the cart here
+    no_of_items_in_cart = item.line_items.length;
+  } else if (item.type === "cart") {
+    // This object cannot be filtered based on last order so we're just gonna hide it in the dashboard when abandoned carts are included
+
+    // assign the cart value here
+    totalPriceInDefaultCurrency = item.line_items.reduce((total, lineItem) => {
+      return total + Number(lineItem.line_price_set.shop_money.amount);
+    }, 0);
+
+    // Assign the number of items in the cart here
+    no_of_items_in_cart = item.line_items.length;
   }
 
-  let totalPriceInDefaultCurrency;
-  if (checkout.presentment_currency != checkout.currency) {
-    totalPriceInDefaultCurrency = await convertToDefaultCurrency(checkout.total_price, checkout.presentment_currency, checkout.currency);
-  } else {
-    totalPriceInDefaultCurrency = checkout.total_price;
-  }
 
   // Find the cohort that matches the customer type, cart value, and number of items in cart
   const cohort = cohorts.find((cohort) => {
-    const purchaseFrequencyIncludesCustomer = cohort.purchase_frequency.includes(customerType);
+    const purchaseFrequencyIncludesCartType = cohort.purchase_frequency.includes(item_type);
+    console.log("Purchase frequency includes cart type: ", purchaseFrequencyIncludesCartType);
+    // This will always return false because we won't know whether they're a new customer or an old customer from an abandoned cart
+    let purchaseFrequencyIncludesCustomer;
+    if (item.type === "cart") {
+      purchaseFrequencyIncludesCustomer = true;
+    } else {
+      purchaseFrequencyIncludesCustomer = cohort.purchase_frequency.includes(customerType);
+    }
+    console.log("Purchase frequency includes customer type: ", purchaseFrequencyIncludesCustomer);
     const cartValueIsWithinRange = (cohort.cart_value[0] === undefined || cohort.cart_value[0] === 0 || totalPriceInDefaultCurrency >= cohort.cart_value[0]) &&
                                        (cohort.cart_value[1] === undefined || cohort.cart_value[1] === 0 || totalPriceInDefaultCurrency <= cohort.cart_value[1]);
-    const itemsInCartIsWithinRange = (cohort.items_in_cart[0] === undefined || cohort.items_in_cart[0] === 0 || checkout.line_items.length >= cohort.items_in_cart[0]) &&
-                                         (cohort.items_in_cart[1] === undefined || cohort.items_in_cart[1] === 0 || checkout.line_items.length <= cohort.items_in_cart[1]);
+    console.log("Cart value is within range: ", cartValueIsWithinRange);
+    const itemsInCartIsWithinRange = (cohort.items_in_cart[0] === undefined || cohort.items_in_cart[0] === 0 || no_of_items_in_cart >= cohort.items_in_cart[0]) &&
+                                         (cohort.items_in_cart[1] === undefined || cohort.items_in_cart[1] === 0 || no_of_items_in_cart <= cohort.items_in_cart[1]);
+    console.log("Number of items in cart is within range: ", itemsInCartIsWithinRange);
     const lastOrderIntervalMatches = diffInDays === 0 || cohort.last_order_interval === undefined || cohort.last_order_interval <= diffInDays;
-    return purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange && lastOrderIntervalMatches;
+    console.log("Last order matches or not: ", lastOrderIntervalMatches);
+    return purchaseFrequencyIncludesCartType && purchaseFrequencyIncludesCustomer && cartValueIsWithinRange && itemsInCartIsWithinRange && lastOrderIntervalMatches;
   });
 
   // If no cohort matches, you might want to handle this case differently

@@ -583,7 +583,7 @@ async function get_abandoned_carts(shop) {
 
   const cartsWithPhoneNumber = snapshot.docs
       .map((doc) => doc.data())
-      .filter((cart) => cart.phone_number !== undefined);
+      .filter((cart) => cart.phone_number !== undefined && cart.phone_number !== null && cart.line_items.length > 0);
 
   return cartsWithPhoneNumber;
 }

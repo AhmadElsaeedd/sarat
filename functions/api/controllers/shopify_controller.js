@@ -89,6 +89,7 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
 
     // Gets all abandoned carts that have a phone number
     const abandoned_carts = await firebase_service.get_abandoned_carts(shop);
+    console.log("Length of abandoned carts: ", abandoned_carts.length);
 
     // Get all the last orders made by the customers (if they have ordered before)
     const orders = await shopify_service.get_last_orders_of_customers_who_have_abandoned_checkouts(shop, access_token, abandoned_uncompleted_checkouts);
@@ -105,19 +106,19 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
 
     // ToDo: INCLUDE SEGMENTATION BASED ON CART OR CHECKOUT INSIDE THIS FUNCTION
     // Assign each checkout to a cohort and get all the needed details with also first reminder/second reminder
-    const abandoned_checkouts_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_everything, cohorts);
+    const abandoned_everything_with_cohorts = await cohort_service.get_customers_with_cohorts(abandoned_everything, cohorts);
     // ToDo: CHANGE THE NAME OF THIS TO ABANDONED_EVERYTHING WITH COHORTS AND PASS IT INTO STRUCTURE DATA FOR MESSAGING
 
     // Get the data that we need from the above array
     // We need: shopify_productNames (array), shopify_productIds (array), phoneNumber, customer name
-    const structured_data = await cohort_service.structure_data_for_messaging(abandoned_checkouts_with_cohorts, shop);
+    // const structured_data = await cohort_service.structure_data_for_messaging(abandoned_checkouts_with_cohorts, shop);
 
     // Based on each customer's cohort and the time that they're in, send them the message that they should receive
-    await cohort_service.send_messages(access_token, shop, structured_data);
+    // await cohort_service.send_messages(access_token, shop, structured_data);
 
     // I don't think we should return anything here, we could just return success
-    res.status(200).send('Abandoned Carts Flow Done!');
-    // res.status(200).send(structured_data);
+    // res.status(200).send('Abandoned Carts Flow Done!');
+    res.status(200).send(abandoned_everything_with_cohorts);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCartsFlow:", error);
     res.status(500).send('Internal Server Error');
