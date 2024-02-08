@@ -41,7 +41,7 @@ div.appendChild(closeButton);
 
         // Create a new paragraph element for the title
         var p1 = document.createElement('p');
-        p1.textContent = "Claim 10% off your order by entering your number and texting us";
+        p1.textContent = "Claim 10% off your order by texting us";
         p1.style.fontWeight = "bold";
         p1.style.textAlign = "center";
         p1.style.marginBottom = "10px";
@@ -188,8 +188,9 @@ div.appendChild(closeButton);
     
             // Create a new paragraph element for the title
             var p1 = document.createElement('p');
-            p1.textContent = "Claim 10% off your order by entering your number and texting us";
+            p1.textContent = "Claim 10% off your order by texting us";
             p1.style.fontWeight = "bold";
+            p1.style.fontSize = "18px"
             p1.style.textAlign = "center";
             p1.style.marginBottom = "10px";
     
