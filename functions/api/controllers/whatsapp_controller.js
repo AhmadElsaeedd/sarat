@@ -5,7 +5,9 @@ const GetMessageTemplates = async (req, res) => {
   try {
     const shop = req.body.shop;
 
-    const brand_message_templates = await whatsapp_manager_service.get_brand_message_templates(shop);
+    const message_template_ids = await firebase_service.get_message_template_ids(shop);
+
+    const brand_message_templates = await whatsapp_manager_service.get_brand_message_templates(shop, message_template_ids);
 
     res.status(200).send(brand_message_templates);
   } catch (error) {
