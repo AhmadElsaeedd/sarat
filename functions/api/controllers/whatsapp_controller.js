@@ -1,4 +1,5 @@
 const whatsapp_manager_service = require('../services/whatsapp_manager_service.js');
+const firebase_service = require('../services/firebase_service.js');
 
 const GetMessageTemplates = async (req, res) => {
   try {
@@ -16,8 +17,12 @@ const GetMessageTemplates = async (req, res) => {
 const CreateMessageTemplate = async (req, res) => {
   try {
     const shop = req.body.shop;
+    const segment_number = req.body.segment_number;
+    const segment_id = req.body.segment_id;
 
-    const creation_response = await whatsapp_manager_service.create_message_template(shop);
+    const creation_response = await whatsapp_manager_service.create_message_templates(shop, segment_number);
+
+    await firebase_service.set_new_message_templates(shop, creation_response, segment_id);
 
     res.status(200).send(creation_response);
   } catch (error) {

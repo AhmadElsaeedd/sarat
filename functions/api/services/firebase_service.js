@@ -589,4 +589,15 @@ async function get_abandoned_carts(shop) {
   return cartsWithPhoneNumber;
 }
 
-module.exports = {get_product_id, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+async function set_new_message_templates(shop, message_templates, segment_id) {
+  const cohort_ref = db.collection('Shopify Stores').doc(shop).collection('Cohorts').doc(segment_id);
+
+  const templateData = {};
+  for (let i = 0; i < message_templates.length; i++) {
+    templateData[`intro_message${i+1}`] = message_templates[i];
+  }
+
+  await cohort_ref.set(templateData, {merge: true});
+}
+
+module.exports = {get_product_id, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
