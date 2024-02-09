@@ -397,6 +397,7 @@ async function get_whatsapp_keys(shop) {
     return {
       whatsapp_access_token: shop_data.whatsapp_access_token,
       whatsapp_phone_number_id: shop_data.whatsapp_phone_number_id,
+      whatsapp_business_account_id: shop_data.whatsapp_business_account_id,
     };
   } else return null;
 }
