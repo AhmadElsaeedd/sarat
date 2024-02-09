@@ -17,36 +17,38 @@ async function get_brand_message_templates(shop) {
 async function create_message_template(shop) {
   const keys = await firebase_service.get_whatsapp_keys(shop);
 
+  console.log("Keys are: ", keys);
   const url = `https://graph.facebook.com/v19.0/${keys.whatsapp_business_account_id}/message_templates`;
 
   const data = {
-    "name": "intro_message",
+    "name": "intro_message1",
     "category": "MARKETING",
     "language": "en_US",
-    "components": [{
-      "type": "BODY",
-      "text": "Hi {{1}}👋 It's {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good?\n\n📲 Text \"Yes\" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}",
-      "example": {
-        "body_text": [
-          [
-            "Faizah", "Sarah", "Beesline", "whitening lift cream", "10", "199", "AED", "49",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}👋 It's {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good?\n\n📲 Text \"Yes\" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}",
+        "example": {
+          "body_text": [
+            [
+              "Faizah", "Sarah", "Beesline", "whitening lift cream", "10", "199", "AED", "49",
+            ],
           ],
-        ],
-      },
-    },
-    {
-      "type": "FOOTER",
-      "text": "Not interested? Tap Stop promotions",
-    },
-    {
-      "type": "BUTTONS",
-      "buttons": [
-        {
-          "type": "QUICK_REPLY",
-          "text": "Stop promotions",
         },
-      ],
-    }],
+      },
+      {
+        "type": "FOOTER",
+        "text": "Not interested? Tap Stop promotions",
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "QUICK_REPLY",
+            "text": "Stop promotions",
+          },
+        ],
+      }],
   };
 
   const headers = {
@@ -55,7 +57,10 @@ async function create_message_template(shop) {
 
   let response;
   try {
-    response = await axios.post(url, data, headers);
+    console.log('URL:', url);
+    console.log('Headers:', headers);
+    console.log('Data:', data);
+    response = await axios.post(url, data, {headers: headers});
   } catch (error) {
     if (error.response) {
       console.error('Whatsapp error response:', error.response.data);
