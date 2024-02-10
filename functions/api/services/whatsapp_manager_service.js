@@ -10,16 +10,23 @@ async function get_brand_message_templates(shop, message_template_ids) {
   };
 
   const messages_with_content = [];
-  for (const message in message_template_ids) {
+  for (const message of message_template_ids) {
     const intro_message1_id = message.intro_message1.id;
-    // This is not the correct url
-    // curl -i -X GET \ "https://graph.facebook.com/v19.0/3169410236528373?access_token=EAAL2rjFGWxUBO21nx8PsD2QpOvZBmmLP1VOrm5iWWko2uvr1IAZBeoR1pcqDoHZBreSPiS6eUcLCQKdQUgUiSNRZCmHavE1gJcmACqy5I5ajGvOxBfAKgizIpiArF9TVln3fyfdQwy8hhFv1iZBvULZBt2IjZCB4IECLGZA2NgbvXQRPJNbgjdgTed0jMosJ905ilpODVSd5Txi1X6rATRP8ZBlLFws8ZD"
-    const url = `https://graph.facebook.com/v19.0/${keys.whatsapp_business_account_id}/message_templates?fields=name,status,components`;
+    const intro_message2_id = message.intro_message2.id;
+
+    const url1 = `https://graph.facebook.com/v19.0/${intro_message1_id}?access_token=${keys.whatsapp_access_token}`;
+    const url2 = `https://graph.facebook.com/v19.0/${intro_message2_id}?access_token=${keys.whatsapp_access_token}`;
+
+    const response1 = await axios.get(url1, {headers});
+    const response2 = await axios.get(url2, {headers});
+
+    message.intro_message1.content = response1.data.components;
+    message.intro_message2.content = response2.data.components;
+
+    messages_with_content.push(message);
   }
 
-  const response = await axios.get(url, {headers});
-
-  return response.data.data;
+  return messages_with_content;
 }
 
 function createHash(input) {
