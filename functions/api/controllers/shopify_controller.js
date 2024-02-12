@@ -38,6 +38,9 @@ const handleAuthenticationCallback = async (req, res) => {
     await shopify_service.subscribe_to_cart_creation(shop, accessToken);
     await shopify_service.subscribe_to_cart_update(shop, accessToken);
     await shopify_service.subscribe_to_checkout_creation(shop, accessToken);
+    await shopify_service.subscribe_to_customer_data_request(shop, accessToken);
+    await shopify_service.subscribe_to_customer_delete(shop, accessToken);
+    await shopify_service.subscribe_to_shop_delete(shop, accessToken);
     if (shop!="21stitches-co-8829.myshopify.com") {
       await shopify_service.attach_script(shop, accessToken);
     }
@@ -121,6 +124,60 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
     // res.status(200).send(structured_data);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCartsFlow:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postCustomerDataRequest = async (req, res) => {
+  try {
+    // This endpoint will receive cart creation events from the webhook and store them as is in our firestore
+    // Cart has been created, intercept the payload
+    // const payload = req.body;
+    const shopDomain = req.get('X-Shopify-Shop-Domain'); // This gets the Shopify shop domain
+
+    // await firebase_service.update_cart(shopDomain, payload);
+
+    console.log(`Webhook received from: ${shopDomain}`);
+
+    res.status(200).send();
+  } catch (error) {
+    console.error("Error in postCustomerDataRequest:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postCustomerDeleteRequest = async (req, res) => {
+  try {
+    // This endpoint will receive cart creation events from the webhook and store them as is in our firestore
+    // Cart has been created, intercept the payload
+    // const payload = req.body;
+    const shopDomain = req.get('X-Shopify-Shop-Domain'); // This gets the Shopify shop domain
+
+    // await firebase_service.update_cart(shopDomain, payload);
+
+    console.log(`Webhook received from: ${shopDomain}`);
+
+    res.status(200).send();
+  } catch (error) {
+    console.error("Error in postCustomerDeleteRequest:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const postShopDeleteRequest = async (req, res) => {
+  try {
+    // This endpoint will receive cart creation events from the webhook and store them as is in our firestore
+    // Cart has been created, intercept the payload
+    // const payload = req.body;
+    const shopDomain = req.get('X-Shopify-Shop-Domain'); // This gets the Shopify shop domain
+
+    // await firebase_service.update_cart(shopDomain, payload);
+
+    console.log(`Webhook received from: ${shopDomain}`);
+
+    res.status(200).send();
+  } catch (error) {
+    console.error("Error in postShopDeleteRequest:", error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -293,4 +350,4 @@ const postShopifyAllCustomers = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postCartUpdatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow, postCheckoutCreatedWebhook};
+module.exports = {postShopifyAbandonedCarts, postCustomerDataRequest, postShopDeleteRequest, postCustomerDeleteRequest, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postCartUpdatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow, postCheckoutCreatedWebhook};
