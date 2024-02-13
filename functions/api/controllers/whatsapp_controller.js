@@ -33,4 +33,19 @@ const CreateMessageTemplate = async (req, res) => {
   }
 };
 
-module.exports = {GetMessageTemplates, CreateMessageTemplate};
+const EditMessageTemplate = async (req, res) => {
+  try {
+    const shop = req.body.shop;
+    const message_template_id = req.body.message_template_id;
+    const content = req.body.content;
+
+    const edit_response = await whatsapp_manager_service.edit_message_template(shop, message_template_id, content);
+
+    res.status(200).send(edit_response);
+  } catch (error) {
+    console.error("Error in EditMessageTemplate:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+module.exports = {GetMessageTemplates, CreateMessageTemplate, EditMessageTemplate};

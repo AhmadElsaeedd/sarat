@@ -12,6 +12,10 @@ const redirectUri = 'https://us-central1-textlet-test.cloudfunctions.net/webhook
 const handleAuthentication = async (req, res) => {
   const shop = req.query.shop;
   if (shop) {
+    // Custom apps can only be installed for one merchant, public apps can be installed by many merchants
+    // I could create a custom app for each merchant we partner with, and add their api key and their secret key here
+    // This is something I'll do later if the app doesn't get on the shopify App store
+    // It's an unscalable solution but it will work for the mvp
     const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${shopifyApiKey}&scope=${scopes}&redirect_uri=${redirectUri}`;
     res.redirect(authUrl);
   } else {
