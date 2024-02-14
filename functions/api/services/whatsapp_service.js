@@ -99,18 +99,83 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
     const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, presentment_currency);
-    const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
+    // const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
+    // Message template url
+    const Whatsapp_URL = `https://graph.facebook.com/v19.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
       'Content-Type': 'application/json',
     };
+    // const data = {
+    //   messaging_product: 'whatsapp',
+    //   to: recipientPhone,
+    //   type: 'image',
+    //   image: {
+    //     link: product_list[0].images[0],
+    //     caption: message,
+    //   },
+    // };
+    // Message template data object
     const data = {
       messaging_product: 'whatsapp',
+      recipient_type: 'individual',
       to: recipientPhone,
-      type: 'image',
-      image: {
-        link: product_list[0].images[0],
-        caption: message,
+      type: 'template',
+      template: {
+        name: 'intro_message1_segment2_uid45e7',
+        language: {
+          code: 'en_US',
+        },
+        components: [
+          {
+            type: 'header',
+            parameters: [
+              {
+                type: 'image',
+                image: {
+                  link: product_list[0].images[0],
+                },
+              },
+            ],
+          },
+          {
+            type: 'body',
+            parameters: [
+              {
+                type: 'text',
+                text: personName,
+              },
+              {
+                type: 'text',
+                text: store_names.human_name,
+              },
+              {
+                type: 'text',
+                text: store_names.brand_name,
+              },
+              {
+                type: 'text',
+                text: product_list[0].product_name,
+              },
+              {
+                type: 'text',
+                text: '10', // replace with actual value
+              },
+              {
+                type: 'text',
+                text: product_list[0].price_in_presentment_currency.toString(),
+              },
+              {
+                type: 'text',
+                text: presentment_currency,
+              },
+              {
+                type: 'text',
+                text: '49', // replace with actual value
+              },
+            ],
+          },
+        ],
       },
     };
     await firebase_service.increment_conversations(shop, recipientPhone);
