@@ -41,6 +41,8 @@ const EditMessageTemplate = async (req, res) => {
 
     const edit_response = await whatsapp_manager_service.edit_message_template(shop, message_template_id, content);
 
+    await firebase_service.update_whatsapp_message_template(shop, message_template_id, content);
+
     res.status(200).send(edit_response);
   } catch (error) {
     console.error("Error in EditMessageTemplate:", error);

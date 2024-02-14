@@ -43,8 +43,10 @@ async function create_message_templates(shop, segment_number) {
   const responses = [];
   for (let iteration_number = 1; iteration_number <= 2; iteration_number++) {
     const uniqueId = createHash(shop + segment_number);
+    const name = `intro_message${iteration_number}_segment${segment_number}_uid${uniqueId}`;
+    const text = "Hi {{1}}👋 It's {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good?\n\n📲 Text \"Yes\" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}";
     const data = {
-      "name": `intro_message${iteration_number}_segment${segment_number}_uid${uniqueId}`,
+      "name": name,
       "category": "MARKETING",
       "language": "en_US",
       "components": [
@@ -60,7 +62,7 @@ async function create_message_templates(shop, segment_number) {
         },
         {
           "type": "BODY",
-          "text": "Hi {{1}}👋 It's {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good?\n\n📲 Text \"Yes\" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}",
+          "text": text,
           "example": {
             "body_text": [
               [
@@ -69,15 +71,13 @@ async function create_message_templates(shop, segment_number) {
             ],
           },
         },
-        //   {
-        //     "type": "FOOTER",
-        //     "text": "Not interested? Tap Stop promotions",
-        //   }
       ],
     };
 
     try {
       const response = await axios.post(url, data, {headers: headers});
+      response.data.name = name;
+      response.data.text = text;
       responses.push(response.data);
     } catch (error) {
       if (error.response) {
@@ -92,7 +92,6 @@ async function create_message_templates(shop, segment_number) {
 }
 
 async function edit_message_template(shop, message_template_id, content) {
-  console.log("Content is: ", content);
   const keys = await firebase_service.get_whatsapp_keys(shop);
   const url = `https://graph.facebook.com/v19.0/${message_template_id}`;
   const headers = {
@@ -124,7 +123,6 @@ async function edit_message_template(shop, message_template_id, content) {
       },
     ],
   };
-
   let response;
   try {
     response = await axios.post(url, data, {headers: headers});

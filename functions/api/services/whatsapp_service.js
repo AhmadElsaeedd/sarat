@@ -47,43 +47,101 @@ function first_or_second_reminder_without_last_text(cohort, checkout_started_at)
   return null;
 }
 
-async function construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, currency) {
-  let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
+// async function construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, currency) {
+//   let message = cohort[`message_opener${reminder}`] + '\n' + '\n';
 
-  // Construct the product list string
-  const productListString = product_list.map((product, index) =>
-    `${index + 1}. ` + cohort[`product_list${reminder}`]
-        .replace('{productName}', product.product_name)
-        .replace('{variantTitle}', product.variant_title ? ": " + product.variant_title : ''),
-  ).join('\n');
+//   // Construct the product list string
+//   const productListString = product_list.map((product, index) =>
+//     `${index + 1}. ` + cohort[`product_list${reminder}`]
+//         .replace('{productName}', product.product_name)
+//         .replace('{variantTitle}', product.variant_title ? ": " + product.variant_title : ''),
+//   ).join('\n');
 
-  message += productListString + '\n'+ '\n';
+//   message += productListString + '\n'+ '\n';
 
-  // Get the price
-  let price = 0;
-  for (const product of product_list) {
-    price += product.price_in_presentment_currency;
+//   // Get the price
+//   let price = 0;
+//   for (const product of product_list) {
+//     price += product.price_in_presentment_currency;
+//   }
+//   const priceMessage = cohort[`message_price${reminder}`].replace('{price}', price).replace('{currency}', currency);
+//   message += priceMessage + '\n' + '\n';
+
+//   // Add discount message if applicable
+//   if ((Number(reminder) === 1 && cohort.discount_in_first) || (Number(reminder) === 2 && cohort.discount_in_second)) {
+//     const discountMessage = cohort[`discount_message${reminder}`]
+//         .replace('{discountAmount}', cohort[`discount_amount_in_${reminder}`]);
+//       // I need to store that this person has a discount here!
+//     message += discountMessage + '\n'+ '\n';
+//   }
+//   await firebase_service.apply_discount_to_customer(recipientPhone, cohort[`discount_amount_in_${reminder}`]);
+
+//   // Add closing message
+//   message += cohort[`message_close${reminder}`];
+
+//   // Replace personName placeholder
+//   message = message.replace('{personName}', personName);
+//   message = message.replace('{humanName}', store_names.human_name);
+//   message = message.replace('{brandName}', store_names.brand_name);
+
+//   return message;
+// }
+
+async function get_message_template(cohort, reminder) {
+  if (reminder === "1") {
+    return cohort.intro_message1;
+  } else if (reminder === "2") {
+    return cohort.intro_message2;
   }
-  const priceMessage = cohort[`message_price${reminder}`].replace('{price}', price).replace('{currency}', currency);
-  message += priceMessage + '\n' + '\n';
+}
 
+async function get_discount_amount(recipientPhone, cohort, reminder) {
+  let discount = 0;
   // Add discount message if applicable
   if ((Number(reminder) === 1 && cohort.discount_in_first) || (Number(reminder) === 2 && cohort.discount_in_second)) {
-    const discountMessage = cohort[`discount_message${reminder}`]
-        .replace('{discountAmount}', cohort[`discount_amount_in_${reminder}`]);
-      // I need to store that this person has a discount here!
-    message += discountMessage + '\n'+ '\n';
+    discount = cohort[`discount_amount_in_${reminder}`];
   }
   await firebase_service.apply_discount_to_customer(recipientPhone, cohort[`discount_amount_in_${reminder}`]);
+  return discount;
+}
 
-  // Add closing message
-  message += cohort[`message_close${reminder}`];
+function get_product_names(product_list) {
+  const productNames = product_list.map((product) => product.product_name);
+  const lastProductName = productNames.pop();
 
-  // Replace personName placeholder
-  message = message.replace('{personName}', personName);
-  message = message.replace('{humanName}', store_names.human_name);
-  message = message.replace('{brandName}', store_names.brand_name);
+  if (productNames.length > 0) {
+    return `${productNames.join(', ')}, and ${lastProductName}`;
+  } else {
+    return lastProductName;
+  }
+}
 
+function get_total_price(product_list) {
+  return product_list.reduce((total, product) => total + product.price_in_presentment_currency, 0);
+}
+
+function get_amount_reduced(totalPrice, discountAmount) {
+  return (totalPrice * discountAmount) / 100;
+}
+
+function get_preson_name(personName) {
+  if (personName === null) {
+    return "";
+  } else {
+    return personName;
+  }
+}
+
+function construct_message_content(personName, store_human_name, brand_name, product_names, discount_amount, total_price, currency, amount_reduced, message_template_content) {
+  let message = message_template_content;
+  message = message.replace('{{1}}', personName)
+      .replace('{{2}}', store_human_name)
+      .replace('{{3}}', brand_name)
+      .replace('{{4}}', product_names)
+      .replace('{{5}}', discount_amount)
+      .replace('{{6}}', total_price)
+      .replace('{{7}}', currency)
+      .replace('{{8}}', amount_reduced);
   return message;
 }
 
@@ -98,7 +156,16 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
     } else {
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
-    const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, presentment_currency);
+    const message_template = await get_message_template(cohort, reminder);
+    const message_template_content = message_template.text;
+    const message_template_name = message_template.name;
+    const discount_amount = await get_discount_amount(cohort, reminder);
+    const product_names = get_product_names(product_list);
+    const total_price = get_total_price(product_list);
+    const amount_reduced = get_amount_reduced(total_price, discount_amount);
+    const person_name = get_preson_name(personName);
+    const message_for_firebase = construct_message_content(person_name, store_names.human_name, store_names.brand_name, product_names, discount_amount, total_price.toString(), presentment_currency, amount_reduced, message_template_content);
+    // const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, presentment_currency);
     // const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
     // Message template url
     const Whatsapp_URL = `https://graph.facebook.com/v19.0/${keys.whatsapp_phone_number_id}/messages`;
@@ -122,7 +189,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
       to: recipientPhone,
       type: 'template',
       template: {
-        name: 'intro_message1_segment2_uid45e7',
+        name: message_template_name,
         language: {
           code: 'en_US',
         },
@@ -143,7 +210,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
             parameters: [
               {
                 type: 'text',
-                text: personName,
+                text: person_name,
               },
               {
                 type: 'text',
@@ -155,15 +222,15 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
               },
               {
                 type: 'text',
-                text: product_list[0].product_name,
+                text: product_names,
               },
               {
                 type: 'text',
-                text: '10', // replace with actual value
+                text: discount_amount,
               },
               {
                 type: 'text',
-                text: product_list[0].price_in_presentment_currency.toString(),
+                text: total_price.toString(),
               },
               {
                 type: 'text',
@@ -171,7 +238,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
               },
               {
                 type: 'text',
-                text: '49', // replace with actual value
+                text: amount_reduced,
               },
             ],
           },
@@ -179,7 +246,7 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
       },
     };
     await firebase_service.increment_conversations(shop, recipientPhone);
-    await firebase_service.increment_messages(shop, "You", recipientPhone, message, null);
+    await firebase_service.increment_messages(shop, "You", recipientPhone, message_for_firebase, null);
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {

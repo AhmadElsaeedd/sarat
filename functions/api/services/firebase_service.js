@@ -600,6 +600,32 @@ async function set_new_message_templates(shop, message_templates, segment_id) {
   await cohort_ref.set(templateData, {merge: true});
 }
 
+async function update_whatsapp_message_template(shop, message_template_id, content) {
+  const cohort_ref = db.collection('Shopify Stores').doc(shop).collection('Cohorts');
+  const snapshot = await cohort_ref.get();
+
+  let docToUpdate = null;
+  snapshot.docs.forEach((doc) => {
+    const data = doc.data();
+    if (data.intro_message1.id === message_template_id) {
+      data.intro_message1.text = content;
+      docToUpdate = doc;
+    } else if (data.intro_message2.id === message_template_id) {
+      data.intro_message2.text = content;
+      docToUpdate = doc;
+    }
+  });
+
+  if (docToUpdate) {
+    await docToUpdate.ref.update({
+      intro_message1: docToUpdate.data().intro_message1,
+      intro_message2: docToUpdate.data().intro_message2,
+    });
+  } else {
+    console.log(`No message template found with id: ${message_template_id}`);
+  }
+}
+
 async function get_message_template_ids(shop) {
   const cohort_ref = db.collection('Shopify Stores').doc(shop).collection('Cohorts');
   const snapshot = await cohort_ref.get();
@@ -616,4 +642,4 @@ async function get_message_template_ids(shop) {
   return result;
 }
 
-module.exports = {get_product_id, get_message_template_ids, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, get_message_template_ids, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
