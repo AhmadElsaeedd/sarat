@@ -42,9 +42,9 @@ const handleAuthenticationCallback = async (req, res) => {
     await shopify_service.subscribe_to_cart_creation(shop, accessToken);
     await shopify_service.subscribe_to_cart_update(shop, accessToken);
     await shopify_service.subscribe_to_checkout_creation(shop, accessToken);
-    await shopify_service.subscribe_to_customer_data_request(shop, accessToken);
-    await shopify_service.subscribe_to_customer_delete(shop, accessToken);
-    await shopify_service.subscribe_to_shop_delete(shop, accessToken);
+    // await shopify_service.subscribe_to_customer_data_request(shop, accessToken);
+    // await shopify_service.subscribe_to_customer_delete(shop, accessToken);
+    // await shopify_service.subscribe_to_shop_delete(shop, accessToken);
     if (shop!="21stitches-co-8829.myshopify.com") {
       await shopify_service.attach_script(shop, accessToken);
     }
