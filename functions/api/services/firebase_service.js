@@ -605,21 +605,22 @@ async function update_whatsapp_message_template(shop, message_template_id, conte
   const snapshot = await cohort_ref.get();
 
   let docToUpdate = null;
+  let messageToUpdate = null;
+
   snapshot.docs.forEach((doc) => {
     const data = doc.data();
     if (data.intro_message1.id === message_template_id) {
-      data.intro_message1.text = content;
       docToUpdate = doc;
+      messageToUpdate = 'intro_message1';
     } else if (data.intro_message2.id === message_template_id) {
-      data.intro_message2.text = content;
       docToUpdate = doc;
+      messageToUpdate = 'intro_message2';
     }
   });
 
   if (docToUpdate) {
     await docToUpdate.ref.update({
-      intro_message1: docToUpdate.data().intro_message1,
-      intro_message2: docToUpdate.data().intro_message2,
+      [`${messageToUpdate}.text`]: content,
     });
   } else {
     console.log(`No message template found with id: ${message_template_id}`);
@@ -651,21 +652,17 @@ async function update_message_template_status(wabaID, message_template_name, sta
   snapshot.docs.forEach((doc) => {
     const data = doc.data();
     if (data.intro_message1.name === message_template_name) {
-      console.log("Update intro message 1 with status: ", status);
-      data.intro_message1.status = status;
       docToUpdate = doc;
       messageToUpdate = 'intro_message1';
     } else if (data.intro_message2.name === message_template_name) {
-      console.log("Update intro message 2 with status: ", status);
-      data.intro_message2.status = status;
       docToUpdate = doc;
       messageToUpdate = 'intro_message2';
     }
   });
 
   if (docToUpdate) {
-    console.log("Going to update now");
     console.log("Message to update is: ", messageToUpdate);
+    console.log("Status to update is: ", status);
     await docToUpdate.ref.update({
       [`${messageToUpdate}.status`]: status,
     });
