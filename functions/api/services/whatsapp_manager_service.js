@@ -226,4 +226,27 @@ async function edit_message_template(shop, message_template_id, content) {
   return response.data;
 }
 
-module.exports = {get_brand_message_templates, create_message_templates, edit_message_template};
+async function delete_message_templates(shop, message_template_names) {
+  const keys = await firebase_service.get_whatsapp_keys(shop);
+  const headers = {
+    'Authorization': `Bearer ${keys.whatsapp_access_token}`,
+  };
+  const responses = [];
+  for (const message_template_name of message_template_names) {
+    const url = `https://graph.facebook.com/v19.0/${keys.whatsapp_business_account_id}/message_templates?name=${message_template_name}`;
+    try {
+      const response = await axios.delete(url, {headers: headers});
+      responses.push(response);
+    } catch (error) {
+      if (error.response) {
+        console.error('Whatsapp error response:', error.response.data);
+      } else {
+        console.error('Error:', error.message);
+      }
+    }
+  }
+
+  return responses;
+}
+
+module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates};

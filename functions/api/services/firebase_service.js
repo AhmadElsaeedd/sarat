@@ -626,6 +626,8 @@ async function update_whatsapp_message_template(shop, message_template_id, conte
   }
 }
 
+// async function update_message_template_status(shop, status, )
+
 async function get_message_template_ids(shop) {
   const cohort_ref = db.collection('Shopify Stores').doc(shop).collection('Cohorts');
   const snapshot = await cohort_ref.get();
@@ -642,4 +644,24 @@ async function get_message_template_ids(shop) {
   return result;
 }
 
-module.exports = {get_product_id, get_message_template_ids, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+async function get_message_template_names_of_segment(shop, segment_id) {
+  const cohort_ref = db.collection('Shopify Stores').doc(shop).collection('Cohorts').doc(segment_id);
+  const doc = await cohort_ref.get();
+
+  if (doc.exists) {
+    const data = doc.data();
+    const names = [];
+    if (data.intro_message1) {
+      names.push(data.intro_message1.name);
+    }
+    if (data.intro_message2) {
+      names.push(data.intro_message2.name);
+    }
+    return names;
+  } else {
+    console.log(`No segment found with id: ${segment_id}`);
+    return null;
+  }
+}
+
+module.exports = {get_product_id, get_message_template_ids, get_message_template_names_of_segment, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

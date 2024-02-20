@@ -99,6 +99,7 @@ const postWebhook = async (req, res) => {
               const value = change.value;
               console.log(`Message Template Status Update: ${value.event}`);
               console.log(`Template ID: ${value.message_template_id}, Name: ${value.message_template_name}, Language: ${value.message_template_language}, Reason: ${value.reason}`);
+              // await firebase_service.update_message_template;
               // Here, add your logic to handle the message template status update
               // This could be logging information, updating a database, etc.
             }

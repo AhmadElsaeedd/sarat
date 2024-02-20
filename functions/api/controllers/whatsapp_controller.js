@@ -54,4 +54,20 @@ const EditMessageTemplate = async (req, res) => {
   }
 };
 
-module.exports = {GetMessageTemplates, CreateMessageTemplate, EditMessageTemplate};
+const DeleteMessageTemplates = async (req, res) => {
+  try {
+    const shop = req.body.shop;
+    const document_id = req.body.document_id;
+
+    const message_template_names = await firebase_service.get_message_template_names_of_segment(shop, document_id);
+
+    const deletion_response = await whatsapp_manager_service.delete_message_templates(shop, message_template_names);
+
+    res.status(200).send(deletion_response);
+  } catch (error) {
+    console.error("Error in EditMessageTemplate:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+module.exports = {GetMessageTemplates, CreateMessageTemplate, EditMessageTemplate, DeleteMessageTemplates};
