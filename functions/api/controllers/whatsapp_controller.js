@@ -22,6 +22,10 @@ const CreateMessageTemplate = async (req, res) => {
     const segment_number = req.body.segment_number;
     const segment_id = req.body.segment_id;
 
+
+    console.log("segment number is: ", segment_number);
+    console.log("Segment id is: ", segment_id);
+
     const creation_response = await whatsapp_manager_service.create_message_templates(shop, segment_number);
 
     await firebase_service.set_new_message_templates(shop, creation_response, segment_id);

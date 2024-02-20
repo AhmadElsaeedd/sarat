@@ -32,8 +32,15 @@ async function get_brand_message_templates(shop, message_template_ids) {
   return messages_with_content;
 }
 
-function createHash(input) {
-  return crypto.createHash('md5').update(input).digest('hex').substring(0, 4);
+// function createHash(input) {
+//   return crypto.createHash('md5').update(input).digest('hex').substring(0, 4);
+// }
+
+function createUniqueID(input) {
+  const timestamp = Date.now();
+  const randomNum = Math.random();
+  const rawString = `${input}-${timestamp}-${randomNum}`;
+  return crypto.createHash('md5').update(rawString).digest('hex').substring(0, 4);
 }
 
 async function create_session(access_token, filePath) {
@@ -112,8 +119,6 @@ async function create_message_templates(shop, segment_number) {
   const keys = await firebase_service.get_whatsapp_keys(shop);
   const imageUrl = 'https://cdn.shopify.com/s/files/1/0676/9600/1322/files/NOR4161.jpg?v=1704811249';
   const filePath = await downloadImage(imageUrl);
-  const session_id = await create_session(keys.whatsapp_access_token, filePath);
-  const file_handle = await initiate_upload(keys.whatsapp_access_token, session_id.id, filePath);
   const url = `https://graph.facebook.com/v19.0/${keys.whatsapp_business_account_id}/message_templates`;
   const headers = {
     'Authorization': `Bearer ${keys.whatsapp_access_token}`,
@@ -121,7 +126,11 @@ async function create_message_templates(shop, segment_number) {
 
   const responses = [];
   for (let iteration_number = 1; iteration_number <= 2; iteration_number++) {
-    const uniqueId = createHash(shop + segment_number);
+    const session_id = await create_session(keys.whatsapp_access_token, filePath);
+    const file_handle = await initiate_upload(keys.whatsapp_access_token, session_id.id, filePath);
+    const uniqueId = createUniqueID(shop + segment_number);
+    console.log("unique id: ", uniqueId);
+    console.log("Segment number: ", segment_number);
     const name = `intro_message${iteration_number}_segment${segment_number}_uid${uniqueId}`;
     const text = "Hi {{1}}👋 It's {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good?\n\n📲 Text \"Yes\" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}";
     const data = {
@@ -146,7 +155,7 @@ async function create_message_templates(shop, segment_number) {
           "example": {
             "body_text": [
               [
-                "Faizah", "Sarah", "Beesline", "whitening lift cream", "10", "199", "AED", "49",
+                "Faizah", "Sarah", "21stitches.co", "Blue cap", "10", "199", "AED", "49",
               ],
             ],
           },

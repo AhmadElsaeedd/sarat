@@ -147,42 +147,60 @@ function construct_message_content(personName, store_human_name, brand_name, pro
 
 async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt, presentment_currency) {
   try {
+    // console.log("Shop:", shop);
+    // console.log("Recipient Phone:", recipientPhone);
+    // console.log("Person Name:", personName);
+    // console.log("Cohort:", cohort);
+    // console.log("Product List:", product_list);
+    // console.log("Checkout Started At:", checkoutStartedAt);
+    // console.log("Presentment Currency:", presentment_currency);
+
     const keys = await firebase_service.get_whatsapp_keys(shop);
+    // console.log("Keys:", keys);
+
     const store_names = await firebase_service.get_store_humanName_brandName(shop);
+    // console.log("Store Names:", store_names);
+
     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
+    // console.log("Last Text to Customer:", last_text_to_customer);
+
     let reminder;
     if (!last_text_to_customer) {
       reminder = first_or_second_reminder_without_last_text(cohort, checkoutStartedAt);
     } else {
       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
     }
+    // console.log("Reminder:", reminder);
+
     const message_template = await get_message_template(cohort, reminder);
+    // console.log("Message Template:", message_template);
     const message_template_content = message_template.text;
     const message_template_name = message_template.name;
-    const discount_amount = await get_discount_amount(cohort, reminder);
+
+    const discount_amount = await get_discount_amount(recipientPhone, cohort, reminder);
+    // console.log("Discount Amount:", discount_amount);
+
     const product_names = get_product_names(product_list);
+    // console.log("Product Names:", product_names);
+
     const total_price = get_total_price(product_list);
+    // console.log("Total Price:", total_price);
+
     const amount_reduced = get_amount_reduced(total_price, discount_amount);
+    // console.log("Amount Reduced:", amount_reduced);
+
     const person_name = get_preson_name(personName);
+    // console.log("Person Name:", person_name);
+
     const message_for_firebase = construct_message_content(person_name, store_names.human_name, store_names.brand_name, product_names, discount_amount, total_price.toString(), presentment_currency, amount_reduced, message_template_content);
-    // const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, presentment_currency);
-    // const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
-    // Message template url
+    // console.log("Message for Firebase:", message_for_firebase);
+
     const Whatsapp_URL = `https://graph.facebook.com/v19.0/${keys.whatsapp_phone_number_id}/messages`;
     const Whatsapp_headers = {
       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
       'Content-Type': 'application/json',
     };
-    // const data = {
-    //   messaging_product: 'whatsapp',
-    //   to: recipientPhone,
-    //   type: 'image',
-    //   image: {
-    //     link: product_list[0].images[0],
-    //     caption: message,
-    //   },
-    // };
-    // Message template data object
+
     const data = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
@@ -245,14 +263,125 @@ async function sendMessageToCohortCustomer(shop, recipientPhone, personName = nu
         ],
       },
     };
+
     await firebase_service.increment_conversations(shop, recipientPhone);
     await firebase_service.increment_messages(shop, "You", recipientPhone, message_for_firebase, null);
+
     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
     console.log("Message sent successfully:", response.data);
   } catch (error) {
     console.error("Error sending message:", error.response ? error.response.data : error.message);
   }
 }
+
+// async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt, presentment_currency) {
+//   try {
+//     const keys = await firebase_service.get_whatsapp_keys(shop);
+//     const store_names = await firebase_service.get_store_humanName_brandName(shop);
+//     const last_text_to_customer = await firebase_service.get_last_message_to_customer(shop, recipientPhone);
+//     let reminder;
+//     if (!last_text_to_customer) {
+//       reminder = first_or_second_reminder_without_last_text(cohort, checkoutStartedAt);
+//     } else {
+//       reminder = first_or_second_reminder(cohort, last_text_to_customer, checkoutStartedAt);
+//     }
+//     const message_template = await get_message_template(cohort, reminder);
+//     const message_template_content = message_template.text;
+//     const message_template_name = message_template.name;
+//     const discount_amount = await get_discount_amount(cohort, reminder);
+//     const product_names = get_product_names(product_list);
+//     const total_price = get_total_price(product_list);
+//     const amount_reduced = get_amount_reduced(total_price, discount_amount);
+//     const person_name = get_preson_name(personName);
+//     const message_for_firebase = construct_message_content(person_name, store_names.human_name, store_names.brand_name, product_names, discount_amount, total_price.toString(), presentment_currency, amount_reduced, message_template_content);
+//     // const message = await construct_message(recipientPhone, cohort, reminder, personName, product_list, store_names, presentment_currency);
+//     // const Whatsapp_URL = `https://graph.facebook.com/v18.0/${keys.whatsapp_phone_number_id}/messages`;
+//     // Message template url
+//     const Whatsapp_URL = `https://graph.facebook.com/v19.0/${keys.whatsapp_phone_number_id}/messages`;
+//     const Whatsapp_headers = {
+//       'Authorization': `Bearer ${keys.whatsapp_access_token}`,
+//       'Content-Type': 'application/json',
+//     };
+//     // const data = {
+//     //   messaging_product: 'whatsapp',
+//     //   to: recipientPhone,
+//     //   type: 'image',
+//     //   image: {
+//     //     link: product_list[0].images[0],
+//     //     caption: message,
+//     //   },
+//     // };
+//     // Message template data object
+//     const data = {
+//       messaging_product: 'whatsapp',
+//       recipient_type: 'individual',
+//       to: recipientPhone,
+//       type: 'template',
+//       template: {
+//         name: message_template_name,
+//         language: {
+//           code: 'en_US',
+//         },
+//         components: [
+//           {
+//             type: 'header',
+//             parameters: [
+//               {
+//                 type: 'image',
+//                 image: {
+//                   link: product_list[0].images[0],
+//                 },
+//               },
+//             ],
+//           },
+//           {
+//             type: 'body',
+//             parameters: [
+//               {
+//                 type: 'text',
+//                 text: person_name,
+//               },
+//               {
+//                 type: 'text',
+//                 text: store_names.human_name,
+//               },
+//               {
+//                 type: 'text',
+//                 text: store_names.brand_name,
+//               },
+//               {
+//                 type: 'text',
+//                 text: product_names,
+//               },
+//               {
+//                 type: 'text',
+//                 text: discount_amount,
+//               },
+//               {
+//                 type: 'text',
+//                 text: total_price.toString(),
+//               },
+//               {
+//                 type: 'text',
+//                 text: presentment_currency,
+//               },
+//               {
+//                 type: 'text',
+//                 text: amount_reduced,
+//               },
+//             ],
+//           },
+//         ],
+//       },
+//     };
+//     await firebase_service.increment_conversations(shop, recipientPhone);
+//     await firebase_service.increment_messages(shop, "You", recipientPhone, message_for_firebase, null);
+//     const response = await axios.post(Whatsapp_URL, data, {headers: Whatsapp_headers});
+//     console.log("Message sent successfully:", response.data);
+//   } catch (error) {
+//     console.error("Error sending message:", error.response ? error.response.data : error.message);
+//   }
+// }
 
 async function sendMessage(recipientPhone, productImage = null, messageContent = null,
     productName = null, personName = null, productSize= null,
