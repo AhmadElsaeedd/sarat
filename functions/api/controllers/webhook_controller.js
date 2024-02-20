@@ -73,6 +73,7 @@ const postWebhook = async (req, res) => {
       // Process each entry asynchronously
       const processingEntries = entries.map(async (entry) => {
         const changes = entry.changes;
+        const wabaId = entry.id;
         if (changes && changes.length) {
           // Process each change asynchronously
           const processingChanges = changes.map(async (change) => {
@@ -97,9 +98,10 @@ const postWebhook = async (req, res) => {
             } else if (change.field === "message_template_status_update") {
               // Specific check for message_template_status_update events
               const value = change.value;
+              console.log("WABA ID: ", wabaId);
               console.log(`Message Template Status Update: ${value.event}`);
               console.log(`Template ID: ${value.message_template_id}, Name: ${value.message_template_name}, Language: ${value.message_template_language}, Reason: ${value.reason}`);
-              // await firebase_service.update_message_template;
+              await firebase_service.update_message_template_status(wabaId, value.message_template_name, value.event);
               // Here, add your logic to handle the message template status update
               // This could be logging information, updating a database, etc.
             }

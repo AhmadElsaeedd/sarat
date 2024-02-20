@@ -236,7 +236,7 @@ async function delete_message_templates(shop, message_template_names) {
     const url = `https://graph.facebook.com/v19.0/${keys.whatsapp_business_account_id}/message_templates?name=${message_template_name}`;
     try {
       const response = await axios.delete(url, {headers: headers});
-      responses.push(response);
+      responses.push(response.data);
     } catch (error) {
       if (error.response) {
         console.error('Whatsapp error response:', error.response.data);

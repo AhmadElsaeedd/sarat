@@ -65,7 +65,7 @@ const DeleteMessageTemplates = async (req, res) => {
 
     res.status(200).send(deletion_response);
   } catch (error) {
-    console.error("Error in EditMessageTemplate:", error);
+    console.error("Error in DeleteMessageTemplates:", error);
     res.status(500).send('Internal Server Error');
   }
 };
