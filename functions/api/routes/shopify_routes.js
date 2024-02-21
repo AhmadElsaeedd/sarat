@@ -11,7 +11,7 @@ router.post('/UpdateProductsWithRefillAfter', express.json(), shopify_controller
 router.post('/GetProduct', express.json(), shopify_controller.postGetProductByID);
 router.post('/GetRefillCustomers', express.json(), shopify_controller.postShopifyRefillCustomers);
 router.post('/OnboardBrand', express.json(), shopify_controller.postShopifyOnboardBrand);
-router.post('/GetAllCustomers', express.json(), shopify_controller.postShopifyAllCustomers);
+router.post('/GetAllCustomers', express.json(), shopify_controller.postShopifyGetAllCustomers);
 router.post('/CartCreatedWebhook', express.json(), shopify_controller.postCartCreatedWebhook);
 router.post('/CartUpdatedWebhook', express.json(), shopify_controller.postCartUpdatedWebhook);
 router.post('/CheckoutCreatedWebhook', express.json(), shopify_controller.postCheckoutCreatedWebhook);

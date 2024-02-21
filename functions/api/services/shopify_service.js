@@ -556,11 +556,13 @@ async function get_customers_with_phone_numbers(customers) {
   const customers_with_phone_numbers = [];
 
   for (const customer of customers) {
-    if (!customer.phone && !customer.addresses[0].phone && !(customer.default_address && customer.default_address.phone)) {
-      return null;
+    if (!(customer.sms_marketing_consent && customer.sms_marketing_consent.state === "subscribed" &&
+    (customer.phone ||
+    (customer.default_address && customer.default_address.phone)))) {
+      continue;
     }
 
-    const customer_phone_number = customer.phone || customer.addresses[0].phone || customer.default_address.phone;
+    const customer_phone_number = customer.phone || customer.default_address.phone;
 
     customers_with_phone_numbers.push({
       customer_id: customer.id,
@@ -571,22 +573,55 @@ async function get_customers_with_phone_numbers(customers) {
   return customers_with_phone_numbers;
 }
 
+// async function get_customers_for_product_launches(shop, access_token) {
+//   const url = `https://${shop}/admin/api/2023-10/customers.json?limit=250`;
+
+//   try {
+//     const response = await axios.get(url, {
+//       headers: {
+//         'X-Shopify-Access-Token': access_token,
+//       },
+//     });
+
+//     console.log("Count of customers is: ", response.data.customers.length);
+
+//     const customers = await get_customers_with_phone_numbers(response.data.customers);
+
+//     console.log("Count of customers is: ", customers.length);
+
+//     return customers;
+//   } catch (error) {
+//     console.error('Error fetching customer:', error);
+//     throw error;
+//   }
+// }
+
 async function get_customers_for_product_launches(shop, access_token) {
-  // const url = `https://${shop}/admin/api/2023-10/customers.json?fields=id,&limit=250`;
-  const url = `https://${shop}/admin/api/2023-10/customers.json?limit=250`;
+  let allCustomers = [];
+  const fields = 'id,first_name,phone,default_address,sms_marketing_consent';
+  const url = `https://${shop}/admin/api/2023-10/customers.json?limit=250&fields=${encodeURIComponent(fields)}`;
+  let since_id = 0;
 
   try {
-    const response = await axios.get(url, {
-      headers: {
-        'X-Shopify-Access-Token': access_token,
-      },
-    });
+    while (true) {
+      const response = await axios.get(`${url}&since_id=${since_id}`, {
+        headers: {
+          'X-Shopify-Access-Token': access_token,
+        },
+      });
 
-    const customers = await get_customers_with_phone_numbers(response.data.customers);
+      const customers = response.data.customers;
+      allCustomers = allCustomers.concat(customers);
+      console.log("all customers length is: ", allCustomers.length);
+      if (customers.length < 250) break;
+      since_id = customers[customers.length - 1].id;
+    }
+    const customersWithPhoneNumbers = await get_customers_with_phone_numbers(allCustomers);
+    console.log("Length of customers with phone numbers: ", customersWithPhoneNumbers);
 
-    return customers;
+    return customersWithPhoneNumbers;
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error('Error fetching customers:', error);
     throw error;
   }
 }

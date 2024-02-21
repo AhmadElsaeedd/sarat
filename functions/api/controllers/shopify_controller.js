@@ -338,7 +338,7 @@ const postGetProductByID = async (req, res) => {
   }
 };
 
-const postShopifyAllCustomers = async (req, res) => {
+const postShopifyGetAllCustomers = async (req, res) => {
   try {
     // This endpoint will just return all the users that must refill their product
     const shop = req.body.shop;
@@ -354,4 +354,4 @@ const postShopifyAllCustomers = async (req, res) => {
   }
 };
 
-module.exports = {postShopifyAbandonedCarts, postCustomerDataRequest, postShopDeleteRequest, postCustomerDeleteRequest, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postCartUpdatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow, postCheckoutCreatedWebhook};
+module.exports = {postShopifyAbandonedCarts, postCustomerDataRequest, postShopDeleteRequest, postCustomerDeleteRequest, handleAuthentication, handleAuthenticationCallback, postCartCreatedWebhook, postCartUpdatedWebhook, postShopifyRefillCustomers, postShopifyGetProductsForRefillAfterField, postShopifyAddRefillAfterFieldToProduct, postGetProductByID, postShopifyOnboardBrand, postShopifyGetAllCustomers, postShopifyAbandonedCartsFirstReminder, postShopifyAbandonedCartsFlow, postCheckoutCreatedWebhook};
