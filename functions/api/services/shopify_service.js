@@ -617,7 +617,7 @@ async function get_customers_for_product_launches(shop, access_token) {
       since_id = customers[customers.length - 1].id;
     }
     const customersWithPhoneNumbers = await get_customers_with_phone_numbers(allCustomers);
-    console.log("Length of customers with phone numbers: ", customersWithPhoneNumbers);
+    console.log("Length of customers with phone numbers: ", customersWithPhoneNumbers.length);
 
     return customersWithPhoneNumbers;
   } catch (error) {
