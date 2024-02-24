@@ -3,6 +3,7 @@ const whatsapp_service = require('../services/whatsapp_service');
 const stripe_service = require('../services/stripe_service');
 const shopify_service = require('../services/shopify_service');
 const firebase_service = require('../services/firebase_service');
+const wit_service = require('../services/wit_service');
 
 function get_text_type(text) {
   text = text.toLowerCase();
@@ -21,6 +22,9 @@ function isCreatedInLast24Hours(obj) {
 
 async function main_control(userPhone, message, message_id) {
   try {
+    // Get the intent of the text from wit.ai
+    const message_meaning = await wit_service.get_message_meaning(message);
+    console.log("Message meaning is: ", message_meaning);
     const text_type = get_text_type(message);
     const current_shop = await firebase_service.get_users_conversation(userPhone);
     await firebase_service.increment_messages(current_shop, userPhone, "You", message, message_id);

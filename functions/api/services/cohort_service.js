@@ -244,14 +244,14 @@ async function send_messages(shop, structured_data) {
       intro_message1: {
         category: "MARKETING",
         id: "440656951626108",
-        name: "intro_message1_segment1_uid514c",
+        name: "intro_message1_segment1_uid9ab4",
         status: "PENDING",
         text: 'Hi {{1}}👋 It\'s {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good? 📲 Text "Yes" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}',
       },
       intro_message2: {
         category: "MARKETING",
         id: "378208751625843",
-        name: "intro_message2_segment1_uid514c",
+        name: "intro_message2_segment1_uid478a",
         status: "PENDING",
         text: 'Hi {{1}}👋 It\'s {{2}} from {{3}}. You left the {{4}} behind. I can add a {{5}}% discount if you checkout now, sounds good? 📲 Text "Yes" to order for {{6}}{{7}} at a {{5}}% discount saving {{8}}{{7}}',
       },
