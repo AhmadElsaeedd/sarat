@@ -16,9 +16,15 @@ async function get_message_meaning(message) {
     const response = await axios.get(url, {
       headers: {'Authorization': `Bearer ${TOKEN}`},
     });
-    const intent_object = response.data.intents[0];
-    // console.log("Intent object is: ", intent_object);
-    return intent_object; // Return the data object directly
+    let intent_object = {};
+    if (response.data.intents.length === 0) {
+      // in the case that the message is out of scope
+      intent_object.name = "out_of_scope";
+    } else {
+      intent_object = response.data.intents[0];
+      console.log("Intent of message is: ", intent_object.name, " with confidence: ", intent_object.confidence * 100);
+    }
+    return intent_object.name;
   } catch (error) {
     console.error(error);
     throw error; // Rethrow the error to handle it outside this function if needed
