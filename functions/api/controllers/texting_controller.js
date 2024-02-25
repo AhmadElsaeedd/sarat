@@ -92,7 +92,6 @@ const postTextingSendMessage = async (req, res) => {
     if (!messageContent || !phoneNumber || !shopDomain) {
       res.status(400).send('Missing required parameters');
     }
-    await firebase_service.user_enter_conversation(phoneNumber, shopDomain);
 
     await whatsapp_service.sendMessage(phoneNumber, null, messageContent, null, null, null, null, null, null, null, "user_generated");
 
