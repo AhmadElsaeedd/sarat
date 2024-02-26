@@ -32,10 +32,6 @@ async function get_brand_message_templates(shop, message_template_ids) {
   return messages_with_content;
 }
 
-// function createHash(input) {
-//   return crypto.createHash('md5').update(input).digest('hex').substring(0, 4);
-// }
-
 function createUniqueID(input) {
   const timestamp = Date.now();
   const randomNum = Math.random();
@@ -252,4 +248,28 @@ async function delete_message_templates(shop, message_template_names) {
   return responses;
 }
 
-module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates};
+async function get_access_token(code) {
+  // Url to get the access token
+  // const url = `https://graph.facebook.com/v18.0/oauth/access_token?
+  // client_id=834177964858133
+  // &redirect-uri=https://www.textlet.io/login-whatsapp
+  // &client_secret=1ff881eb1338aa5c15914ec584ebc446
+  // &code=${code}`;
+
+  const url = `https://graph.facebook.com/v19.0/oauth/access_token?client_id=834177964858133&client_secret=1ff881eb1338aa5c15914ec584ebc446&code=${code}`;
+
+  try {
+    const response = await axios.get(url);
+    console.log("Get access token function reponse data: ", response.data);
+    return response.data; // This will contain the access token
+  } catch (error) {
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    } else {
+      console.error('Error:', error.message);
+    }
+    return null; // Return null or throw an error as per your error handling strategy
+  }
+}
+
+module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token};

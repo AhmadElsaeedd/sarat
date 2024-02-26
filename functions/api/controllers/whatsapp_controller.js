@@ -1,6 +1,25 @@
 const whatsapp_manager_service = require('../services/whatsapp_manager_service.js');
 const firebase_service = require('../services/firebase_service.js');
 
+const OnboardClient = async (req, res) => {
+  try {
+    const code = req.body.code;
+    console.log("Code is: ", code);
+    // const shopify_domain = req.body.shopify_domain;
+
+    // get the access token
+    const access_token = await whatsapp_manager_service.get_access_token(code);
+    console.log("Access token: ", access_token);
+
+    // store the access token in the shopify's firestore
+
+    // res.status(200).send(creation_response);
+  } catch (error) {
+    console.error("Error in CreateMessageTemplates:", error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
 const GetMessageTemplates = async (req, res) => {
   try {
     const shop = req.body.shop;
@@ -70,4 +89,4 @@ const DeleteMessageTemplates = async (req, res) => {
   }
 };
 
-module.exports = {GetMessageTemplates, CreateMessageTemplate, EditMessageTemplate, DeleteMessageTemplates};
+module.exports = {OnboardClient, GetMessageTemplates, CreateMessageTemplate, EditMessageTemplate, DeleteMessageTemplates};

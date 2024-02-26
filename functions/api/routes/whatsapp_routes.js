@@ -7,6 +7,7 @@ router.post('/GetMessageTemplates', express.json(), whatsapp_controller.GetMessa
 router.post('/CreateMessageTemplate', express.json(), whatsapp_controller.CreateMessageTemplate);
 router.post('/EditMessageTemplate', express.json(), whatsapp_controller.EditMessageTemplate);
 router.post('/DeleteMessageTemplates', express.json(), whatsapp_controller.DeleteMessageTemplates);
+router.post('/OnboardClient', express.json(), whatsapp_controller.OnboardClient);
 
 
 module.exports = router;
