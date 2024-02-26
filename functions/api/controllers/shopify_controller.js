@@ -4,8 +4,6 @@ const shopify_service = require('../services/shopify_service');
 const stripe_service = require('../services/stripe_service');
 const cohort_service = require('../services/cohort_service');
 // const {access} = require('fs');
-const shopifyApiKey = "ef3aa22bb5224ece6ac31306731ff62d";
-const shopifyApiSecret = "44095502e2626466960c924e4af35e7e";
 const scopes = 'read_products,write_orders, read_orders, read_customers,read_inventory, write_products,read_script_tags, write_script_tags';
 const redirectUri = 'https://us-central1-textlet-test.cloudfunctions.net/webhook/shopify/auth/callback';
 
@@ -16,7 +14,8 @@ const handleAuthentication = async (req, res) => {
     // I could create a custom app for each merchant we partner with, and add their api key and their secret key here
     // This is something I'll do later if the app doesn't get on the shopify App store
     // It's an unscalable solution but it will work for the mvp
-    const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${shopifyApiKey}&scope=${scopes}&redirect_uri=${redirectUri}`;
+    const shopify_keys = await firebase_service.get_shopify_keys(shop);
+    const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${shopify_keys.shopify_api_key}&scope=${scopes}&redirect_uri=${redirectUri}`;
     res.redirect(authUrl);
   } else {
     return res.status(400).send('Missing shop parameter. Please add ?shop=your-development-shop.myshopify.com to your request');
@@ -25,14 +24,18 @@ const handleAuthentication = async (req, res) => {
 
 const handleAuthenticationCallback = async (req, res) => {
   const {shop, code} = req.query;
-  const accessTokenRequestUrl = `https://${shop}/admin/oauth/access_token`;
-  const accessTokenPayload = {
-    client_id: shopifyApiKey,
-    client_secret: shopifyApiSecret,
-    code,
-  };
-
+  if (!shop || !code) {
+    return res.status(400).send('Required parameters missing');
+  }
   try {
+    const shopify_keys = await firebase_service.get_shopify_keys(shop);
+    const accessTokenRequestUrl = `https://${shop}/admin/oauth/access_token`;
+    const accessTokenPayload = {
+      client_id: shopify_keys.shopify_api_key,
+      client_secret: shopify_keys.shopify_api_secret,
+      code,
+    };
+
     const response = await axios.post(accessTokenRequestUrl, accessTokenPayload);
     const accessToken = response.data.access_token;
     const shopData = await shopify_service.get_store_configuration(shop, accessToken);
