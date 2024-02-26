@@ -56,24 +56,6 @@ async function get_customers_and_line_items(array_of_items, shop) {
       checkout_started_at = item.created_at;
     }
 
-    // const customer_currency = checkout.presentment_currency;
-
-    // const cohort = checkout.cohort;
-
-    // const product_list = await Promise.all(
-    //     checkout.line_items.map(async (item) => {
-    //       return {
-    //         product_id: item.product_id,
-    //         product_name: item.title,
-    //         variant_title: item.variant_title,
-    //         variant_id: item.variant_id,
-    //         price_in_presentment_currency: item.price,
-    //       };
-    //     }),
-    // );
-
-    // const checkout_started_at = checkout.created_at;
-
     const data = {
       customer_name: customer_name,
       // customer_id: customer_id,

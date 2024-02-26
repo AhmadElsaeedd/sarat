@@ -49,6 +49,19 @@ async function get_product_ids(userPhone) {
   }
 }
 
+async function get_product_list(userPhone) {
+  const user_doc = await db.collection('Customers').doc(userPhone).get();
+  try {
+    if (user_doc.exists) {
+      const product_list = user_doc.data().current_product_list;
+      return product_list;
+    }
+  } catch (error) {
+    console.error("Error in getting product list: ", error);
+    throw error;
+  }
+}
+
 async function get_price_for_confirmation(userPhone) {
   try {
     const user_doc = await db.collection('Customers').doc(userPhone).get();
@@ -171,7 +184,7 @@ async function save_store_data(shop, access_token, shop_data) {
     shopify_access_token: access_token,
     shop: shop,
     payment_link_message: "Perfect! You can reserve your item(s) by entering your details here now: \n \n{paymentURL}!",
-    payment_confirmation_message: "Awesome! Just to confirm: \n \n💳 {brand} card ending with {last4} \n🏡{address} \n💰{price}{currency} \n \nJust say 'Yes' to confirm, or 'Edit' to edit your card details or address. You'll be able to cancel in the next 24 hours.",
+    payment_confirmation_message: "Awesome! Just to confirm: \n \n💳 {brand} card ending with {last4} \n🏡{address} \n📦{products} \n💰{price}{currency} \n \nJust say 'Yes' to confirm, or 'Edit' to edit your card details or address. You'll be able to cancel in the next 24 hours.",
     success_message: "{payment_status}! \nText us 'Cancel' to cancel, only in the next 24 hours.",
     refund_message: "{refund_status}. \n \n Your payment has been canceled and the amount will be refunded to your card.",
   }, {merge: true});
@@ -718,4 +731,4 @@ async function get_shopify_keys(shop) {
   } else return null;
 }
 
-module.exports = {get_product_id, get_shopify_keys, get_message_template_ids, update_message_template_status, get_message_template_names_of_segment, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {get_product_id, get_product_list, get_shopify_keys, get_message_template_ids, update_message_template_status, get_message_template_names_of_segment, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};

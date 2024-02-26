@@ -147,14 +147,6 @@ function construct_message_content(personName, store_human_name, brand_name, pro
 
 async function sendMessageToCohortCustomer(shop, recipientPhone, personName = null, cohort, product_list, checkoutStartedAt, presentment_currency) {
   try {
-    // console.log("Shop:", shop);
-    // console.log("Recipient Phone:", recipientPhone);
-    // console.log("Person Name:", personName);
-    // console.log("Cohort:", cohort);
-    // console.log("Product List:", product_list);
-    // console.log("Checkout Started At:", checkoutStartedAt);
-    // console.log("Presentment Currency:", presentment_currency);
-
     const keys = await firebase_service.get_whatsapp_keys(shop);
     // console.log("Keys:", keys);
 
@@ -288,7 +280,8 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
       'Content-Type': 'application/json',
     };
     const messageTemplate = await firebase_service.get_message_template(shop, message_type);
-    messageContent = await getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
+    const product_list = await firebase_service.get_product_list(recipientPhone);
+    messageContent = await getMessageContent(recipientPhone, message_type, messageContent, product_list, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop);
     let data;
     if (productImage != null) {
       // send a message with a picture of the product
@@ -318,7 +311,7 @@ async function sendMessage(recipientPhone, productImage = null, messageContent =
   }
 }
 
-async function getMessageContent(recipientPhone, message_type, messageContent, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop) {
+async function getMessageContent(recipientPhone, message_type, messageContent, productList, productName, personName, productSize, paymentURL, refund_status, payment_status, payment_method_id, messageTemplate, shop) {
   switch (message_type) {
     case 'abandoned_cart_message':
     {
@@ -339,20 +332,17 @@ async function getMessageContent(recipientPhone, message_type, messageContent, p
     }
     case 'payment_confirmation_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Payment Pending");
-      // const payment_details = await stripe_service.get_card_details(payment_method_id, shop);
-      // const customer_id = await firebase_service.get_customer_id(recipientPhone, shop);
-      // const customer = await stripe_service.get_customer_address(customer_id, shop);
-      // const currency = await firebase_service.get_store_currency(shop);
-      // const price = await firebase_service.get_price_for_confirmation(recipientPhone);
-      const [payment_details, customer_id, currency, price] = await Promise.all([
+      // get the product details here as well
+      const [payment_details, customer_id, currency, price, product_names] = await Promise.all([
         stripe_service.get_card_details(payment_method_id, shop),
         firebase_service.get_customer_id(recipientPhone, shop),
         firebase_service.get_store_currency(shop),
         firebase_service.get_price_for_confirmation(recipientPhone),
+        get_product_names(productList),
       ]);
 
       const customer = await stripe_service.get_customer_address(customer_id, shop);
-      return create_confirmation_message(payment_details, customer.address, messageTemplate, price, currency);
+      return create_confirmation_message(payment_details, customer.address, messageTemplate, price, currency, product_names);
     }
     case 'success_message': {
       await firebase_service.update_conversation_status(shop, recipientPhone, "Successful Payment");
@@ -394,7 +384,7 @@ function create_payment_link_message(paymentURL, message_template, shopUrl) {
   return message;
 }
 
-function create_confirmation_message(card_details, address_details, message_template, price, currency) {
+function create_confirmation_message(card_details, address_details, message_template, price, currency, products) {
   const brand = card_details.card.brand;
   const capitalizedBrand = brand.charAt(0).toUpperCase() + brand.slice(1);
   const last4 = card_details.card.last4;
@@ -405,6 +395,7 @@ function create_confirmation_message(card_details, address_details, message_temp
       .replace('{address}', address)
       .replace('{price}', price)
       .replace('{currency}', currency)
+      .replace('{products}', products)
       .replace(/\\n/g, '\n');
   return message;
 }
