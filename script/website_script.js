@@ -79,7 +79,7 @@ div.appendChild(closeButton);
             fetch('/cart.js').then(async res => {
                 let cart = await res.json();
                 cart.phone_number = input.value;
-
+                
                 // Make a POST request to your server
                 const response = await fetch('https://us-central1-textlet-test.cloudfunctions.net/webhook/firebase/SetNewCart', {
                     method: 'POST',

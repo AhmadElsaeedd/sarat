@@ -5,17 +5,20 @@ const OnboardClient = async (req, res) => {
   try {
     const code = req.body.code;
     console.log("Code is: ", code);
-    // const shopify_domain = req.body.shopify_domain;
+    const shopify_domain = req.body.shopify_domain;
+    console.log("Shopify domain is: ", shopify_domain);
 
     // get the access token
     const access_token = await whatsapp_manager_service.get_access_token(code);
-    console.log("Access token: ", access_token);
+
+    // ToDo: get the WABA ID and the phone number ID from whatsapp
 
     // store the access token in the shopify's firestore
+    await firebase_service.set_whatsapp_access_token(shopify_domain, access_token);
 
-    // res.status(200).send(creation_response);
+    res.status(200).json({message: 'Successfully onboarded'});
   } catch (error) {
-    console.error("Error in CreateMessageTemplates:", error);
+    console.error("Error in OnboardClient:", error);
     res.status(500).send('Internal Server Error');
   }
 };
