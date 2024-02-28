@@ -253,7 +253,6 @@ async function get_access_token(code) {
 
   try {
     const response = await axios.get(url);
-    // console.log("Get access token function reponse data: ", response.data);
     return response.data.access_token;
   } catch (error) {
     if (error.response) {
@@ -265,4 +264,42 @@ async function get_access_token(code) {
   }
 }
 
-module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token};
+async function get_waba(access_token) {
+  const url = `https://graph.facebook.com/v19.0/1422719181789952/client_whatsapp_business_accounts/`;
+  const headers = {
+    'Authorization': `Bearer ${access_token}`,
+  };
+
+  try {
+    const response = await axios.get(url, {headers: headers});
+    return response.data.data[response.data.data.length - 1];
+  } catch (error) {
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    } else {
+      console.error('Error:', error.message);
+    }
+    return null;
+  }
+}
+
+async function get_phone_number(access_token, waba_id) {
+  const url = `https://graph.facebook.com/v19.0/${waba_id}/phone_numbers`;
+  const headers = {
+    'Authorization': `Bearer ${access_token}`,
+  };
+
+  try {
+    const response = await axios.get(url, {headers: headers});
+    return response.data.data[response.data.data.length - 1];
+  } catch (error) {
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    } else {
+      console.error('Error:', error.message);
+    }
+    return null;
+  }
+}
+
+module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token, get_waba, get_phone_number};

@@ -4,17 +4,17 @@ const firebase_service = require('../services/firebase_service.js');
 const OnboardClient = async (req, res) => {
   try {
     const code = req.body.code;
-    console.log("Code is: ", code);
     const shopify_domain = req.body.shopify_domain;
-    console.log("Shopify domain is: ", shopify_domain);
 
     // get the access token
     const access_token = await whatsapp_manager_service.get_access_token(code);
 
     // ToDo: get the WABA ID and the phone number ID from whatsapp
+    const waba = await whatsapp_manager_service.get_waba(access_token);
+    const phone_number = await whatsapp_manager_service.get_phone_number(access_token, waba.id);
 
     // store the access token in the shopify's firestore
-    await firebase_service.set_whatsapp_access_token(shopify_domain, access_token);
+    await firebase_service.set_whatsapp_details(shopify_domain, access_token, waba, phone_number);
 
     res.status(200).json({message: 'Successfully onboarded'});
   } catch (error) {

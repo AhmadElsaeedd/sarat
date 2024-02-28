@@ -731,12 +731,22 @@ async function get_shopify_keys(shop) {
   } else return null;
 }
 
-async function set_whatsapp_access_token(shop, access_token) {
+async function set_whatsapp_details(shop, access_token, waba, phone_number) {
   const store_ref = db.collection('Shopify Stores').doc(shop);
+
+  console.log("Setting details");
+  console.log("Waba is: ", waba);
+  console.log("Phone number is: ", phone_number);
+  console.log("Access token: ", access_token);
 
   await store_ref.set({
     whatsapp_access_token: access_token,
+    whatsapp_business_account_id: waba.id,
+    whatsapp_phone_number_id: phone_number.id,
+    whatsapp_phone_number: phone_number.display_phone_number,
+    whatsapp_name: phone_number.verified_name,
+    whatsapp_message_template_namespace: waba.message_template_namespace,
   }, {merge: true});
 }
 
-module.exports = {set_whatsapp_access_token, get_product_id, get_product_list, get_shopify_keys, get_message_template_ids, update_message_template_status, get_message_template_names_of_segment, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
+module.exports = {set_whatsapp_details, get_product_id, get_product_list, get_shopify_keys, get_message_template_ids, update_message_template_status, get_message_template_names_of_segment, update_whatsapp_message_template, set_new_message_templates, get_abandoned_carts, set_new_order, update_cart, set_status, create_dynamic_link, get_store_brand_domain, delete_carts, save_store_data, get_price_for_confirmation, does_message_exist, apply_discount_to_customer, use_discount, get_discount_amount, get_store_humanName_brandName, get_stripe_key, get_stripe_endpoint_secret, get_last_message_by_customer, get_customer_id, get_product_ids, user_has_customer_id, get_status, check_user_thread, create_user, get_customer_data, update_status, store_data, update_current_product, get_store_access_token, increment_total_messages, start_conversation, increment_number_of_conversations, get_users_conversation, get_message_template, update_message_template, increment_messages, increment_conversations, increment_sales, refund_sale, get_store_currency, update_conversation_status, get_whatsapp_keys, get_cohorts, get_last_message_to_customer};
