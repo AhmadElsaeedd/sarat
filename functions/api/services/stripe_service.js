@@ -235,6 +235,9 @@ async function generatePaymentLink(phoneNumber, product_ids, shop) {
 async function generateCheckoutSession(phoneNumber, shop) {
   try {
     const secretKey = await firebase_service.get_stripe_key(shop);
+    const shop_phone_number = await firebase_service.get_phone_number(shop);
+    // ToDo: remove any + or spaces in the shop_phone_number
+    const shop_phone_number_cleaned = shop_phone_number.replace(/\s/g, '').replace('+', '');
     const stripe = getStripeInstance(secretKey);
     const customer_id = await firebase_service.get_customer_id(phoneNumber);
     let session;
@@ -263,7 +266,7 @@ async function generateCheckoutSession(phoneNumber, shop) {
           shop: shop,
         },
         // Later on replace those urls with the actual urls of the brands.
-        success_url: 'https://wa.me/15551304813',
+        success_url: `https://wa.me/${shop_phone_number_cleaned}`,
         shipping_address_collection: {
           allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
         },
@@ -300,7 +303,7 @@ async function generateCheckoutSession(phoneNumber, shop) {
           shop: shop,
         },
         // Later on replace those urls with the actual urls of the brands.
-        success_url: 'https://wa.me/15551304813',
+        success_url: `https://wa.me/${shop_phone_number_cleaned}`,
         shipping_address_collection: {
           allowed_countries: ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'IS', 'NO', 'CH', 'LI', 'AE', 'BH', 'KW', 'OM', 'QA', 'SA', 'US', 'CA'],
         },
