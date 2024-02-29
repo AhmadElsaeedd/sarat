@@ -15,6 +15,8 @@ const OnboardClient = async (req, res) => {
 
     await whatsapp_manager_service.register_phone_number(access_token, phone_number.id);
 
+    await whatsapp_manager_service.subscribe_to_webhooks(access_token, waba.id);
+
     // store the access token in the shopify's firestore
     await firebase_service.set_whatsapp_details(shopify_domain, access_token, waba, phone_number);
 

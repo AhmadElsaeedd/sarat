@@ -328,4 +328,21 @@ async function register_phone_number(access_token, phone_number_id) {
   }
 }
 
-module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token, get_waba, get_phone_number, register_phone_number};
+async function subscribe_to_webhooks(access_token, waba_id) {
+  const url = `https://graph.facebook.com/v19.0/${waba_id}/subscribed_apps?access_token=${access_token}`;
+
+  try {
+    const response = await axios.post(url);
+    console.log("Response of subscribing to webhooks: ", response.data);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    } else {
+      console.error('Error:', error.message);
+    }
+    return null;
+  }
+}
+
+module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token, get_waba, get_phone_number, register_phone_number, subscribe_to_webhooks};
