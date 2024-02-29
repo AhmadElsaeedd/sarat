@@ -205,8 +205,8 @@ async function send_messages(shop, structured_data) {
 
   const structured_data2 = [{
     "customer_currency": "EGP",
-    "customer_name": "Ahmed",
-    "customer_phone": "201200025500",
+    "customer_name": "Faizah",
+    "customer_phone": "393803804264",
     "checkout_started_at": checkout_started_at,
     "cohort": {
       cart_value: [0, 0],
