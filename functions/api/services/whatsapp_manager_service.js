@@ -302,4 +302,30 @@ async function get_phone_number(access_token, waba_id) {
   }
 }
 
-module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token, get_waba, get_phone_number};
+async function register_phone_number(access_token, phone_number_id) {
+  const url = `https://graph.facebook.com/v19.0/${phone_number_id}/register`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${access_token}`,
+  };
+
+  const data = {
+    "messaging_product": "whatsapp",
+    "pin": "611669",
+  };
+
+  try {
+    const response = await axios.post(url, data, {headers: headers});
+    console.log("Response of registering phone number: ", response.data);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    } else {
+      console.error('Error:', error.message);
+    }
+    return null;
+  }
+}
+
+module.exports = {get_brand_message_templates, create_message_templates, edit_message_template, delete_message_templates, get_access_token, get_waba, get_phone_number, register_phone_number};

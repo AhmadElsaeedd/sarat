@@ -13,6 +13,8 @@ const OnboardClient = async (req, res) => {
     const waba = await whatsapp_manager_service.get_waba(access_token);
     const phone_number = await whatsapp_manager_service.get_phone_number(access_token, waba.id);
 
+    await whatsapp_manager_service.register_phone_number(access_token, phone_number.id);
+
     // store the access token in the shopify's firestore
     await firebase_service.set_whatsapp_details(shopify_domain, access_token, waba, phone_number);
 
