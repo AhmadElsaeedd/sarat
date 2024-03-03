@@ -124,11 +124,11 @@ const postShopifyAbandonedCartsFlow = async (req, res) => {
 
     // Based on each customer's cohort and the time that they're in, send them the message that they should receive
     // const check_proper_data = await cohort_service.send_messages(shop, structured_data);
-    await cohort_service.send_messages(shop, structured_data);
+    // await cohort_service.send_messages(shop, structured_data);
 
     // I don't think we should return anything here, we could just return success
-    res.status(200).send('Abandoned Carts Flow Done!');
-    // res.status(200).send(structured_data);
+    // res.status(200).send('Abandoned Carts Flow Done!');
+    res.status(200).send(structured_data);
   } catch (error) {
     console.error("Error in postShopifyAbandonedCartsFlow:", error);
     res.status(500).send('Internal Server Error');
