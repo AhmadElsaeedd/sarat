@@ -81,7 +81,7 @@ const postShopifyOnboardBrand = async (req, res) => {
     }
 
 
-    res.status(200).send(products);
+    res.status(200).send('Products onboarded to Stripe');
   } catch (error) {
     console.error("Error in postShopifyOnboardBrand:", error);
     res.status(500).send('Internal Server Error');
@@ -325,16 +325,13 @@ const postShopifyAddRefillAfterFieldToProduct = async (req, res) => {
 
 const postGetProductByID = async (req, res) => {
   try {
-    // This endpoint will just return all the users that must refill their product
     const shop = req.body.shop;
     const product_id = req.body.product_id;
     const access_token = await firebase_service.get_store_access_token(shop);
 
     const product = await shopify_service.get_product(shop, access_token, product_id);
 
-    console.log("This is the product now: ", product);
-
-    res.status(200).send('EVENT RECEIVED');
+    res.status(200).send(product);
   } catch (error) {
     console.error("Error in postShopifyAddRefillAfterFieldToProduct:", error);
     res.status(500).send('Internal Server Error');
